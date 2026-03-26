@@ -123,6 +123,14 @@ main{padding:20px;max-width:800px;margin:0 auto;}
       <div class="card-hd"><span class="card-hd-title">🔥 Trận Đấu Gần Nhất</span></div>
       <div class="card-bd" id="recent-results" style="padding:10px 20px;"></div>
     </div>
+
+    <!-- ADMIN TOOLS -->
+    <div id="admin-tools" class="hidden" style="margin-top:20px; padding:0 5px;">
+      <div style="font-size:11px; font-weight:800; color:var(--muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Công cụ Quản trị</div>
+      <button class="btn btn-block" style="background:rgba(237,23,76,0.1); border:1px solid var(--nba-red); color:var(--nba-red); font-size:12px;" onclick="resetResults()">
+        ⚠️ RESET TOÀN BỘ KẾT QUẢ GIẢI ĐẤU
+      </button>
+    </div>
   </div>
 
   <!-- SCHEDULE PAGE -->
@@ -241,9 +249,28 @@ async function doLogin(){
   initRealtime(); initApp();
 }
 
+function isAdmin(){ return currentUser?.role === 'admin'; }
+
+async function resetResults() {
+  if (!isAdmin()) return;
+  const confirmPw = prompt("XÁC NHẬN ADMIN: Nhập mật khẩu ADMIN để xóa toàn bộ kết quả giải đấu:");
+  if (confirmPw === 'admin123') { // Mật khẩu admin mặc định
+    if (confirm("CẢNH BÁO: Hành động này sẽ XÓA VĨNH VIỄN toàn bộ điểm số đã nhập. Bạn chắc chắn chứ?")) {
+      const { error } = await _db.from('results').delete().neq('match_key', 'none');
+      if (!error) {
+        results = {}; alert("Đã Reset toàn bộ giải đấu về trạng thái ban đầu!");
+        refreshUI();
+      } else { alert("Lỗi khi reset: " + error.message); }
+    }
+  } else if (confirmPw !== null) {
+    alert("Sai mật khẩu xác nhận!");
+  }
+}
+
 function initApp(){
   document.getElementById('user-avatar').textContent = currentUser.role==='admin'?'👑':currentUser.team||'👁';
   document.getElementById('user-label').textContent = currentUser.label;
+  if(isAdmin()) document.getElementById('admin-tools').classList.remove('hidden');
   const rounds = [...new Set(SCHEDULE.map(s=>s.round))].sort((a,b)=>a-b);
   document.getElementById('sch-round').innerHTML = '<option value="0">TẤT CẢ LƯỢT</option>' + rounds.map(r=>`<option value="${r}">LƯỢT ${r}</option>`).join('');
   showPage('overview');
