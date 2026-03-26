@@ -271,6 +271,7 @@ main:not(.active-page) { display: none !important; }
         <div class="dash-label" style="margin-bottom: 15px;">Thêm Vận Động Viên (Demo DB)</div>
         <input type="text" id="admin-code" class="admin-input" placeholder="Mã VĐV (vd: A1)">
         <input type="text" id="admin-name" class="admin-input" placeholder="Tên hiển thị">
+        <input type="number" id="admin-team" class="admin-input" placeholder="Đội (số nguyên, vd: 1)">
         <button class="admin-btn" onclick="adminAddMember()">+ THÊM VÀO DỮ LIỆU</button>
     </div>
 </main>
@@ -545,7 +546,7 @@ function renderTeamsList() {
     // Group pairs by team
     const groupedTeams = {};
     Object.values(PAIRS).forEach(p => {
-        if (!p.team || p.team === 'CHALLENGE') return; // Bỏ qua cặp không có đội hoặc cặp thách đấu
+        if (p.team == null || p.team === 999) return; // Bỏ qua cặp không có đội hoặc cặp thách đấu
         if (!groupedTeams[p.team]) groupedTeams[p.team] = [];
         groupedTeams[p.team].push(p);
     });
@@ -638,8 +639,8 @@ window.createChallengeMatch = async function() {
 
     try {
         await db.from('pairs').insert([
-            { id: pair1Id, codes: codes1, team: 'CHALLENGE' },
-            { id: pair2Id, codes: codes2, team: 'CHALLENGE' }
+            { id: pair1Id, codes: codes1, team: 999 },
+            { id: pair2Id, codes: codes2, team: 999 }
         ]);
 
         await db.from('schedule').insert([{
@@ -647,6 +648,7 @@ window.createChallengeMatch = async function() {
             court: parseInt(court),
             pair1_id: pair1Id,
             pair2_id: pair2Id,
+            ref_team: 999,
             is_live: false
         }]);
 
@@ -845,7 +847,7 @@ window.toggleStandings = function(type) {
 
 function calculateStats() {
     const teamStats = {}, indivStats = {};
-    Object.values(PAIRS).forEach(p => { if(p.team && !teamStats[p.team] && p.team !== 'CHALLENGE') teamStats[p.team] = { id: p.team, w: 0, l: 0, hs: 0 }; });
+    Object.values(PAIRS).forEach(p => { if(p.team != null && !teamStats[p.team] && p.team !== 999) teamStats[p.team] = { id: p.team, w: 0, l: 0, hs: 0 }; });
     Object.values(MEMBERS).forEach(m => { indivStats[m.code] = { id: m.code, name: m.name, w: 0, l: 0, hs: 0, form: [] }; });
 
     let completedMatches = 0;
@@ -865,7 +867,7 @@ function calculateStats() {
         if(!p1 || !p2) return;
         const t1Win = r.s1 > r.s2;
 
-        if(p1.team && p2.team) {
+        if(p1.team != null && p2.team != null) {
             if(t1Win) { teamStats[p1.team].w++; teamStats[p2.team].l++; } 
             else { teamStats[p2.team].w++; teamStats[p1.team].l++; }
             teamStats[p1.team].hs += (r.s1 - r.s2); 
@@ -943,14 +945,17 @@ function renderStandings() {
 window.adminAddMember = async function() {
     const code = document.getElementById('admin-code').value.trim().toUpperCase();
     const name = document.getElementById('admin-name').value.trim();
-    if(!code || !name) return showToast("Vui lòng nhập đủ Mã và Tên", "error");
+    const team = parseInt(document.getElementById('admin-team').value);
+    
+    if(!code || !name || isNaN(team)) return showToast("Vui lòng nhập đủ Mã, Tên và Đội (số)", "error");
     
     try {
-        const { error } = await db.from('members').insert([{ code, name }]);
+        const { error } = await db.from('members').insert([{ code, name, team }]);
         if(error) throw error;
         showToast("Thêm VĐV thành công!");
         document.getElementById('admin-code').value = '';
         document.getElementById('admin-name').value = '';
+        document.getElementById('admin-team').value = '';
     } catch (e) { showToast("Mã VĐV đã tồn tại hoặc có lỗi", "error"); }
 }
 
