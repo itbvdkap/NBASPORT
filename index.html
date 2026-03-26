@@ -6,28 +6,40 @@
 <title>🏸 NBA Badminton - Pro Tournament</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 <style>
 :root {
+  /* DARK THEME (DEFAULT) */
   --bg:#0d1117; --surface:#161b22; --card:#21262d;
   --border:#30363d; --nba-blue:#006bb6; --nba-red:#ed174c;
   --text:#c9d1d9; --white:#f0f6fc; --muted:#8b949e;
   --t1:#3b82f6; --t2:#f59e0b; --t3:#10b981;
   --radius:10px; --nav-h:70px;
 }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:var(--nav-h);overflow-x:hidden;}
 
-/* ── MODERN UI COMPONENTS ── */
+body.light-mode {
+  --bg:#f0f2f5; --surface:#ffffff; --card:#ffffff;
+  --border:#d0d7de; --text:#1f2328; --white:#000000; --muted:#656d76;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:var(--nav-h);overflow-x:hidden;transition: background 0.3s, color 0.3s;}
+
+/* ── UI COMPONENTS ── */
 .top-bar{background:rgba(22,27,34,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;letter-spacing:1px;color:#fff;display:flex;align-items:center;}
+body.light-mode .top-bar{background:rgba(255,255,255,0.95);}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;letter-spacing:1px;color:var(--white);display:flex;align-items:center;}
 .logo span{color:var(--nba-red); margin-left:5px;}
+
+/* ── THEME TOGGLE ── */
+.theme-toggle{background:var(--card);border:1px solid var(--border);color:var(--white);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
 
 /* ── PROGRESS BAR ── */
 .progress-container{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:10px;}
 .progress-fill{height:100%;background:linear-gradient(90deg, var(--nba-blue), var(--t3));transition:width 1s ease-in-out;}
 
-/* ── MATCH CARDS (MODERN) ── */
-.match-card{padding:18px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);margin-bottom:15px;position:relative;}
+/* ── MATCH CARDS ── */
+.match-card{padding:18px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);margin-bottom:15px;position:relative;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
 .match-card.win-1{border-left:4px solid var(--t1);}
 .match-card.win-2{border-right:4px solid var(--t2);}
 .match-status{position:absolute;top:10px;right:10px;font-size:10px;font-weight:900;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
@@ -39,68 +51,77 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .score-box{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:var(--white);text-align:center;}
 .team-names{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
 
-/* ── TOAST NOTIFICATION ── */
-#toast-container{position:fixed;top:20px;right:20px;z-index:1000;}
-.toast{background:var(--surface);border:1px solid var(--border);color:var(--white);padding:12px 20px;border-radius:8px;margin-bottom:10px;box-shadow:0 10px 30px rgba(0,0,0,0.5);display:flex;align-items:center;gap:10px;animation:slideIn 0.3s ease-out;}
-@keyframes slideIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
-
-/* ── TABS ── */
-.tab-container{display:flex;background:var(--surface);border-radius:25px;padding:4px;margin-bottom:20px;border:1px solid var(--border);}
-.tab-btn{flex:1;padding:8px;border-radius:20px;border:none;background:none;color:var(--muted);font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer;}
-.tab-btn.active{background:var(--card);color:var(--white);box-shadow:0 2px 10px rgba(0,0,0,0.2);}
-
-/* ── BOTTOM NAV ── */
+/* ── NAVIGATION ── */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:none;border:none;color:var(--muted);cursor:pointer;}
 .nav-item.active{color:var(--nba-blue);}
+
+/* ── MODAL ── */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px);}
+.modal-content{background:var(--surface);padding:30px;border-radius:20px;text-align:center;width:100%;max-width:320px;border:1px solid var(--border);}
 
 main{padding:20px;max-width:800px;margin:0 auto;}
 .hidden{display:none !important;}
 @keyframes pulse{0%{opacity:1;}50%{opacity:0.6;}100%{opacity:1;}}
 
-/* ── INPUT PRO STYLE ── */
-.score-row{display:flex;align-items:center;justify-content:center;gap:15px;margin:20px 0;}
-.score-input{width:80px;height:80px;background:var(--bg);border:2px solid var(--border);border-radius:15px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:40px;font-weight:900;color:var(--white);}
-.score-input:focus{border-color:var(--nba-blue);outline:none;}
+.score-input{width:70px;height:70px;background:var(--bg);border:2px solid var(--border);border-radius:12px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--white);}
 </style>
 </head>
-<body>
+<body class="dark-mode">
 
-<div id="toast-container"></div>
+<!-- QR MODAL -->
+<div id="qr-modal" class="modal hidden" onclick="this.classList.add('hidden')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div style="font-weight:800;margin-bottom:20px;color:var(--white);">QUÉT ĐỂ XEM KẾT QUẢ</div>
+    <canvas id="qr-canvas"></canvas>
+    <div style="margin-top:20px;font-size:12px;color:var(--muted);">Chia sẻ link này cho khán giả</div>
+    <button onclick="document.getElementById('qr-modal').classList.add('hidden')" style="margin-top:20px;width:100%;padding:12px;border-radius:10px;border:none;background:var(--card);color:var(--white);font-weight:700;">ĐÓNG</button>
+  </div>
+</div>
 
+<!-- TOAST CONTAINER -->
+<div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:3000;"></div>
+
+<!-- LOGIN SCREEN -->
 <div id="login-screen" style="position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;">
   <div style="width:100%;max-width:380px;text-align:center;">
     <div class="logo" style="font-size:45px;justify-content:center;margin-bottom:10px;">NBA<span>🏸</span></div>
-    <div style="color:var(--muted);margin-bottom:35px;font-weight:600;letter-spacing:1px;">TOURNAMENT MANAGEMENT PRO</div>
-    <div style="background:var(--surface);padding:30px;border-radius:20px;border:1px solid var(--border);text-align:left;">
+    <div style="color:var(--muted);margin-bottom:35px;font-weight:600;">TOURNAMENT MANAGEMENT PRO</div>
+    
+    <div style="background:var(--surface);padding:30px;border-radius:20px;border:1px solid var(--border);text-align:left;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
       <div style="margin-bottom:20px;">
         <label style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;">Tên đăng nhập</label>
-        <input type="text" id="login-user" style="width:100%;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:#fff;">
+        <input type="text" id="login-user" style="width:100%;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--white);">
       </div>
-      <div style="margin-bottom:30px;">
+      <div style="margin-bottom:25px;">
         <label style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;">Mật khẩu</label>
-        <input type="password" id="login-pw" style="width:100%;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:#fff;">
+        <input type="password" id="login-pw" style="width:100%;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--white);">
       </div>
-      <button onclick="doLogin()" style="width:100%;padding:16px;background:var(--nba-blue);color:#fff;border:none;border-radius:10px;font-weight:800;cursor:pointer;">ĐĂNG NHẬP NGAY</button>
+      <button onclick="doLogin()" style="width:100%;padding:16px;background:var(--nba-blue);color:#fff;border:none;border-radius:10px;font-weight:800;cursor:pointer;margin-bottom:15px;">ĐĂNG NHẬP HỆ THỐNG</button>
+      
+      <div style="display:flex;gap:10px;">
+        <button onclick="quickViewerLogin()" style="flex:1;padding:12px;background:var(--card);color:var(--white);border:1px solid var(--border);border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;">👁 KHÁN GIẢ</button>
+        <button onclick="showQR()" style="flex:1;padding:12px;background:var(--card);color:var(--white);border:1px solid var(--border);border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;">📱 MÃ QR</button>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="top-bar">
   <div class="logo">NBA<span>SPORT</span></div>
-  <div id="user-info" style="display:flex;align-items:center;gap:10px;background:var(--card);padding:5px 15px 5px 5px;border-radius:25px;border:1px solid var(--border);cursor:pointer;" onclick="location.reload()">
-    <div id="user-avatar" style="width:30px;height:30px;background:var(--nba-blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;">?</div>
-    <span id="user-label" style="font-size:13px;font-weight:700;">Đang tải...</span>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <div class="theme-toggle" onclick="toggleTheme()" id="theme-icon">🌙</div>
+    <div id="user-info" style="display:flex;align-items:center;gap:10px;background:var(--card);padding:5px 12px 5px 5px;border-radius:25px;border:1px solid var(--border);cursor:pointer;" onclick="if(confirm('Đăng xuất?')) location.reload()">
+      <div id="user-avatar" style="width:28px;height:28px;background:var(--nba-blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:12px;">?</div>
+      <span id="user-label" style="font-size:12px;font-weight:700;color:var(--white);">Đang tải...</span>
+    </div>
   </div>
 </div>
 
 <main>
   <!-- OVERVIEW PAGE -->
   <div id="page-overview" class="page-anim hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;">DASHBOARD</div>
-      <button onclick="refreshData()" style="background:none;border:none;color:var(--nba-blue);font-weight:800;font-size:12px;cursor:pointer;">🔄 LÀM MỚI</button>
-    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;margin-bottom:20px;">DASHBOARD</div>
     
     <div style="background:var(--card);padding:20px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:20px;">
       <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;">
@@ -110,16 +131,14 @@ main{padding:20px;max-width:800px;margin:0 auto;}
       <div class="progress-container"><div id="prog-fill" class="progress-fill" style="width:0%"></div></div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;" id="stat-cards"></div>
-
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;margin-bottom:15px;color:var(--muted);">🔥 ĐANG DIỄN RA / GẦN NHẤT</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;" id="stat-cards"></div>
     <div id="live-matches"></div>
   </div>
 
   <!-- SCHEDULE PAGE -->
   <div id="page-schedule" class="page-anim hidden">
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;margin-bottom:20px;">LỊCH THI ĐẤU</div>
-    <div class="tab-container" id="sch-round-tabs"></div>
+    <div style="display:flex;overflow-x:auto;gap:8px;margin-bottom:20px;padding-bottom:5px;" id="sch-round-tabs"></div>
     <div id="schedule-content"></div>
   </div>
 
@@ -132,9 +151,9 @@ main{padding:20px;max-width:800px;margin:0 auto;}
   <!-- STANDINGS PAGE -->
   <div id="page-standings" class="page-anim hidden">
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;margin-bottom:20px;">XẾP HẠNG</div>
-    <div class="tab-container">
-      <button class="tab-btn active" onclick="switchStandings('ind')">Cá nhân</button>
-      <button class="tab-btn" onclick="switchStandings('team')">Đội nhóm</button>
+    <div style="display:flex;background:var(--surface);padding:4px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px;">
+      <button class="stand-tab active" onclick="switchStandings('ind', this)" style="flex:1;padding:10px;border:none;background:none;color:var(--muted);font-weight:800;font-size:12px;border-radius:8px;cursor:pointer;">CÁ NHÂN</button>
+      <button class="stand-tab" onclick="switchStandings('team', this)" style="flex:1;padding:10px;border:none;background:none;color:var(--muted);font-weight:800;font-size:12px;border-radius:8px;cursor:pointer;">ĐỘI NHÓM</button>
     </div>
     <div id="standings-content"></div>
   </div>
@@ -148,70 +167,67 @@ main{padding:20px;max-width:800px;margin:0 auto;}
 </nav>
 
 <script>
-// ─────────────────────────────────────
-// SUPABASE CONFIG
-// ─────────────────────────────────────
 const SUPABASE_URL = 'https://glgacpczmotmzhejmmpb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZ2FjcGN6bW90bXpoZWptbXBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjM5MDUsImV4cCI6MjA5MDA5OTkwNX0.qpM7Odz6hk6Q86u_4FsWV6-uN9ZqfvgbG3AXDqJLQag';
 const { createClient } = supabase;
 const _db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ─────────────────────────────────────
-// STATE MANAGEMENT (No more hardcode)
-// ─────────────────────────────────────
-let USERS = [], MEMBERS = {}, RESULTS = {}, PAIRS = {}, SCHEDULE = [];
-let currentUser = null;
-let currentStandingsTab = 'ind';
+let USERS=[], MEMBERS={}, RESULTS={}, PAIRS={}, SCHEDULE=[], currentUser=null, currentStandingsTab='ind';
+
+// ── THEME LOGIC ──
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  document.getElementById('theme-icon').textContent = isLight ? '☀️' : '🌙';
+  localStorage.setItem('nba-theme', isLight ? 'light' : 'dark');
+}
+if(localStorage.getItem('nba-theme') === 'light') toggleTheme();
+
+// ── QR LOGIC ──
+function showQR() {
+  const url = window.location.origin + window.location.pathname + '?mode=viewer';
+  new QRious({ element: document.getElementById('qr-canvas'), value: url, size: 200 });
+  document.getElementById('qr-modal').classList.remove('hidden');
+}
+
+async function quickViewerLogin() {
+  await loadData();
+  currentUser = {username:'xem', role:'viewer', label:'Khán giả', team:0};
+  document.getElementById('login-screen').classList.add('hidden');
+  initRealtime(); initApp();
+}
+
+// ── AUTO LOGIN IF VIEWER LINK ──
+const urlParams = new URLSearchParams(window.location.search);
+if(urlParams.get('mode') === 'viewer') quickViewerLogin();
 
 async function loadData(){
   const [u, m, r, p, s] = await Promise.all([
-    _db.from('app_users').select('*'),
-    _db.from('members').select('*'),
-    _db.from('results').select('*'),
-    _db.from('pairs').select('*'),
+    _db.from('app_users').select('*'), _db.from('members').select('*'),
+    _db.from('results').select('*'), _db.from('pairs').select('*'),
     _db.from('schedule').select('*').order('round').order('court')
   ]);
-  
-  if(u.data) USERS = u.data;
-  if(m.data) m.data.forEach(i => MEMBERS[i.code] = i);
-  if(p.data) p.data.forEach(i => PAIRS[i.id] = i);
-  if(s.data) SCHEDULE = s.data;
-  
-  RESULTS = {};
-  if(r.data) r.data.forEach(i => RESULTS[i.match_key] = i);
+  if(u.data) USERS=u.data;
+  if(m.data) m.data.forEach(i=>MEMBERS[i.code]=i);
+  if(p.data) p.data.forEach(i=>PAIRS[i.id]=i);
+  if(s.data) SCHEDULE=s.data;
+  RESULTS={}; if(r.data) r.data.forEach(i=>RESULTS[i.match_key]=i);
 }
 
-function showToast(msg, type='info'){
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.innerHTML = `<span>${type==='error'?'❌':'✅'}</span> <b>${msg}</b>`;
-  document.getElementById('toast-container').appendChild(t);
-  setTimeout(() => t.remove(), 3000);
-}
-
-// ─────────────────────────────────────
-// AUTH LOGIC (Security fixed)
-// ─────────────────────────────────────
 async function doLogin(){
   const uname = document.getElementById('login-user').value.trim().toLowerCase();
   const pw = document.getElementById('login-pw').value;
-  
   await loadData();
   const user = USERS.find(u => u.username.toLowerCase() === uname && u.password === pw);
-  
-  if(!user && !(uname==='xem' && pw==='')){
-    showToast('Thông tin đăng nhập sai!', 'error'); return;
-  }
-  
+  if(!user && !(uname==='xem' && pw==='')){ showToast('Sai mật khẩu!','error'); return; }
   currentUser = user || {username:'xem', role:'viewer', label:'Khán giả', team:0};
   document.getElementById('login-screen').classList.add('hidden');
   initRealtime(); initApp();
 }
 
 function initRealtime(){
-  _db.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'results' }, async () => {
+  _db.channel('any').on('postgres_changes', { event:'*', schema:'public', table:'results' }, async () => {
     const { data } = await _db.from('results').select('*');
-    RESULTS = {}; data.forEach(i => RESULTS[i.match_key] = i);
+    RESULTS={}; data.forEach(i=>RESULTS[i.match_key]=i);
     refreshUI();
   }).subscribe();
 }
@@ -219,12 +235,10 @@ function initRealtime(){
 function initApp(){
   document.getElementById('user-avatar').textContent = currentUser.role==='admin'?'👑':currentUser.team||'👁';
   document.getElementById('user-label').textContent = currentUser.label;
-  
   const rounds = [...new Set(SCHEDULE.map(s => s.round))];
   document.getElementById('sch-round-tabs').innerHTML = rounds.map((r,i) => 
-    `<button class="tab-btn ${i===0?'active':''}" onclick="filterRound(${r}, this)">Lượt ${r}</button>`
+    `<button class="tab-btn ${i===0?'active':''}" onclick="filterRound(${r}, this)" style="padding:10px 20px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--white);font-weight:800;white-space:nowrap;cursor:pointer;">Lượt ${r}</button>`
   ).join('');
-  
   showPage('overview');
 }
 
@@ -236,206 +250,130 @@ function showPage(id){
   refreshUI();
 }
 
-// ─────────────────────────────────────
-// RENDERERS
-// ─────────────────────────────────────
 function refreshUI(){
   const active = ['overview','schedule','enter','standings'].find(p => !document.getElementById('page-'+p).classList.contains('hidden'));
-  if(active === 'overview') renderOverview();
-  if(active === 'schedule') renderSchedule(1);
-  if(active === 'enter') renderEnter();
-  if(active === 'standings') renderStandings();
+  if(active==='overview') renderOverview();
+  if(active==='schedule') renderSchedule(1);
+  if(active==='enter') renderEnter();
+  if(active==='standings') renderStandings();
 }
 
 function renderOverview(){
-  const total = SCHEDULE.filter(s => s.pair1_id && s.pair2_id).length;
-  const done = SCHEDULE.filter(s => RESULTS[`${s.round}-${s.court}`]).length;
+  const total = SCHEDULE.filter(s=>s.pair1_id && s.pair2_id).length;
+  const done = SCHEDULE.filter(s=>RESULTS[`${s.round}-${s.court}`]).length;
   const pct = Math.round((done/total)*100) || 0;
-  
   document.getElementById('prog-val').textContent = pct + '%';
   document.getElementById('prog-fill').style.width = pct + '%';
-  
   document.getElementById('stat-cards').innerHTML = `
     <div style="background:var(--card);padding:15px;border-radius:var(--radius);border:1px solid var(--border);">
       <div style="font-size:10px;color:var(--muted);font-weight:900;">TỔNG TRẬN</div>
       <div style="font-family:'Barlow Condensed';font-size:32px;font-weight:900;color:var(--nba-blue);">${total}</div>
     </div>
     <div style="background:var(--card);padding:15px;border-radius:var(--radius);border:1px solid var(--border);">
-      <div style="font-size:10px;color:var(--muted);font-weight:900;">ĐÃ HOÀN THÀNH</div>
+      <div style="font-size:10px;color:var(--muted);font-weight:900;">ĐÃ XONG</div>
       <div style="font-family:'Barlow Condensed';font-size:32px;font-weight:900;color:var(--t3);">${done}</div>
-    </div>
-  `;
-  
-  const live = SCHEDULE.filter(s => s.pair1_id && s.pair2_id).slice(-4).reverse();
-  document.getElementById('live-matches').innerHTML = live.map(s => {
-    const r = RESULTS[`${s.round}-${s.court}`];
-    const p1 = PAIRS[s.pair1_id]; const p2 = PAIRS[s.pair2_id];
-    return `
-      <div class="match-card ${r?(+r.s1>+r.s2?'win-1':'win-2'):''}">
-        <span class="match-status ${r?'status-done':'status-live'}">${r?'KẾT THÚC':'ĐANG CHỜ'}</span>
-        <div class="match-vs">
-          <div class="team-code" style="color:${tColor[p1.team]}">${s.pair1_id}</div>
-          <div class="score-box">${r?r.s1+':'+r.s2:'VS'}</div>
-          <div class="team-code" style="color:${tColor[p2.team]}">${s.pair2_id}</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:700;">
-          <span>${p1.codes.map(c=>MEMBERS[c]?.name).join(' + ')}</span>
-          <span>${p2.codes.map(c=>MEMBERS[c]?.name).join(' + ')}</span>
-        </div>
+    </div>`;
+  const recent = SCHEDULE.filter(s=>RESULTS[`${s.round}-${s.court}`]).slice(-3).reverse();
+  document.getElementById('live-matches').innerHTML = recent.map(s => {
+    const r=RESULTS[`${s.round}-${s.court}`], p1=PAIRS[s.pair1_id], p2=PAIRS[s.pair2_id];
+    return `<div class="match-card ${+r.s1>+r.s2?'win-1':'win-2'}">
+      <span class="match-status status-done">FINISH</span>
+      <div class="match-vs"><div class="team-code" style="color:var(--t1)">${s.pair1_id}</div><div class="score-box">${r.s1}:${r.s2}</div><div class="team-code" style="color:var(--t2)">${s.pair2_id}</div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:700;">
+        <span>${p1.codes.map(c=>MEMBERS[c]?.name).join(' + ')}</span><span>${p2.codes.map(c=>MEMBERS[c]?.name).join(' + ')}</span>
       </div>
-    `;
+    </div>`;
   }).join('');
 }
 
 function renderSchedule(round){
-  const rows = SCHEDULE.filter(s => s.round === round);
+  const rows = SCHEDULE.filter(s=>s.round===round);
   document.getElementById('schedule-content').innerHTML = rows.map(s => {
-    const r = RESULTS[`${s.round}-${s.court}`];
-    const p1 = PAIRS[s.pair1_id]; const p2 = PAIRS[s.pair2_id];
-    if(!p2) return `<div class="match-card" style="opacity:0.5;border-style:dashed;text-align:center;"><div class="team-names">ĐỘI ${p1.team} NGHỈ LƯỢT NÀY</div></div>`;
-    return `
-      <div class="match-card">
-        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:10px;">
-          <span>SÂN ${s.court}</span>
-          <span style="color:var(--t2)">TT: ĐỘI ${s.ref_team}</span>
-        </div>
-        <div class="match-vs">
-          <div class="team-code" style="color:${tColor[p1.team]}">${s.pair1_id}</div>
-          <div class="score-box" style="font-size:24px;">${r?r.s1+':'+r.s2:'VS'}</div>
-          <div class="team-code" style="color:${tColor[p2.team]}">${s.pair2_id}</div>
-        </div>
-      </div>
-    `;
+    const r=RESULTS[`${s.round}-${s.court}`], p1=PAIRS[s.pair1_id], p2=PAIRS[s.pair2_id];
+    if(!p2) return `<div class="match-card" style="opacity:0.5;border-style:dashed;text-align:center;"><div class="team-names">ĐỘI ${p1.team} NGHỈ</div></div>`;
+    return `<div class="match-card"><div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:10px;"><span>SÂN ${s.court}</span><span style="color:var(--t2)">TT: ĐỘI ${s.ref_team}</span></div>
+      <div class="match-vs"><div class="team-code">${s.pair1_id}</div><div class="score-box" style="font-size:24px;">${r?r.s1+':'+r.s2:'VS'}</div><div class="team-code">${s.pair2_id}</div></div>
+    </div>`;
   }).join('');
 }
 
 function filterRound(r, btn){
-  document.querySelectorAll('#sch-round-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active'); renderSchedule(r);
+  document.querySelectorAll('#sch-round-tabs .tab-btn').forEach(b=>b.style.borderColor='var(--border)');
+  btn.style.borderColor='var(--nba-blue)'; renderSchedule(r);
 }
 
 function renderEnter(){
-  if(currentUser.role === 'viewer') {
-    document.getElementById('enter-content').innerHTML = '<div style="text-align:center;padding:50px;color:var(--muted);font-weight:700;">CHỈ TRỌNG TÀI MỚI CÓ QUYỀN NHẬP ĐIỂM</div>';
-    return;
-  }
-  
-  let rows = SCHEDULE.filter(s => s.pair1_id && s.pair2_id);
-  if(currentUser.role !== 'admin') rows = rows.filter(s => s.ref_team === currentUser.team);
-  
+  if(currentUser.role==='viewer'){ document.getElementById('enter-content').innerHTML='<div style="text-align:center;padding:50px;color:var(--muted);font-weight:700;">CHỈ TRỌNG TÀI MỚI CÓ QUYỀN NHẬP ĐIỂM</div>'; return; }
+  let rows = SCHEDULE.filter(s=>s.pair1_id && s.pair2_id);
+  if(currentUser.role!=='admin') rows = rows.filter(s=>s.ref_team === currentUser.team);
   document.getElementById('enter-content').innerHTML = rows.map(s => {
-    const key = `${s.round}-${s.court}`;
-    const r = RESULTS[key] || {s1:'', s2:''};
-    return `
-      <div style="background:var(--card);border:1px solid var(--border);padding:20px;border-radius:var(--radius);margin-bottom:15px;">
-        <div style="text-align:center;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:15px;">LƯỢT ${s.round} - SÂN ${s.court}</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div style="text-align:center;flex:1;">
-            <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:900;color:${tColor[PAIRS[s.pair1_id].team]}">${s.pair1_id}</div>
-          </div>
-          <div style="flex:2;display:flex;gap:10px;justify-content:center;align-items:center;">
-            <input type="number" id="s1-${key}" class="score-input" value="${r.s1}" min="0" max="30">
-            <span style="font-weight:900;color:var(--muted);">:</span>
-            <input type="number" id="s2-${key}" class="score-input" value="${r.s2}" min="0" max="30">
-          </div>
-          <div style="text-align:center;flex:1;">
-            <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:900;color:${tColor[PAIRS[s.pair2_id].team]}">${s.pair2_id}</div>
-          </div>
-        </div>
-        <button onclick="saveScore('${key}')" style="width:100%;margin-top:20px;padding:14px;background:var(--nba-red);border:none;border-radius:10px;color:#fff;font-weight:800;cursor:pointer;">
-          ${r.s1!==''?'CẬP NHẬT KẾT QUẢ':'LƯU ĐIỂM NGAY'}
-        </button>
+    const key=`${s.round}-${s.court}`, r=RESULTS[key]||{s1:'',s2:''};
+    return `<div class="match-card">
+      <div style="text-align:center;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:15px;">LƯỢT ${s.round} - SÂN ${s.court}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:900;">${s.pair1_id}</div>
+        <div style="display:flex;gap:10px;align-items:center;"><input type="number" id="s1-${key}" class="score-input" value="${r.s1}"><span>:</span><input type="number" id="s2-${key}" class="score-input" value="${r.s2}"></div>
+        <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:900;">${s.pair2_id}</div>
       </div>
-    `;
+      <button onclick="saveScore('${key}')" style="width:100%;margin-top:20px;padding:14px;background:var(--nba-red);border:none;border-radius:10px;color:#fff;font-weight:800;cursor:pointer;">LƯU ĐIỂM</button>
+    </div>`;
   }).join('');
 }
 
 async function saveScore(key){
-  const s1 = document.getElementById('s1-'+key).value;
-  const s2 = document.getElementById('s2-'+key).value;
-  
-  if(s1 === '' || s2 === '') { showToast('Vui lòng nhập đủ điểm!', 'error'); return; }
-  if(s1 < 0 || s2 < 0 || s1 > 99 || s2 > 99) { showToast('Điểm số không hợp lệ!', 'error'); return; }
-  
-  if(RESULTS[key] && !confirm('Kết quả đã tồn tại, bạn có muốn ghi đè không?')) return;
-
-  const { error } = await _db.from('results').upsert({
-    match_key: key, s1: +s1, s2: +s2
-  });
-  
-  if(!error) {
-    showToast('Lưu kết quả thành công!');
-    await _db.from('audit_logs').insert({
-      username: currentUser.username,
-      match_key: key,
-      action: 'UPDATE',
-      details: { s1: +s1, s2: +s2 }
-    });
-  } else { showToast('Lỗi: ' + error.message, 'error'); }
+  const s1=document.getElementById('s1-'+key).value, s2=document.getElementById('s2-'+key).value;
+  if(s1===''||s2===''){ showToast('Nhập đủ điểm!','error'); return; }
+  const { error } = await _db.from('results').upsert({match_key:key, s1:+s1, s2:+s2});
+  if(!error){ showToast('Đã lưu thành công!'); if(navigator.vibrate) navigator.vibrate(50); }
 }
 
-function switchStandings(tab){
-  currentStandingsTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase().includes(tab==='ind'?'cá nhân':'đội')));
-  renderStandings();
+function switchStandings(tab, btn){
+  currentStandingsTab=tab;
+  document.querySelectorAll('.stand-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderStandings();
 }
 
 function renderStandings(){
-  if(currentStandingsTab === 'ind'){
-    const ind = {};
-    Object.keys(MEMBERS).forEach(k => ind[k] = {w:0, l:0, pts:0, gf:0, ga:0});
-    SCHEDULE.forEach(s => {
-      const r = RESULTS[`${s.round}-${s.court}`]; if(!r) return;
-      PAIRS[s.pair1_id]?.codes.forEach(c => { ind[c].gf+=r.s1; ind[c].ga+=r.s2; if(r.s1>r.s2) ind[c].w++; else ind[c].l++; });
-      PAIRS[s.pair2_id]?.codes.forEach(c => { ind[c].gf+=r.s2; ind[c].ga+=r.s1; if(r.s2>r.s1) ind[c].w++; else ind[c].l++; });
+  const tColor=['','#3b82f6','#f59e0b','#10b981'];
+  if(currentStandingsTab==='ind'){
+    const ind={}; Object.keys(MEMBERS).forEach(k=>ind[k]={w:0,l:0,pts:0,gf:0,ga:0});
+    SCHEDULE.forEach(s=>{
+      const r=RESULTS[`${s.round}-${s.court}`]; if(!r) return;
+      PAIRS[s.pair1_id]?.codes.forEach(c=>{ ind[c].gf+=r.s1; ind[c].ga+=r.s2; if(r.s1>r.s2) ind[c].w++; else ind[c].l++; });
+      PAIRS[s.pair2_id]?.codes.forEach(c=>{ ind[c].gf+=r.s2; ind[c].ga+=r.s1; if(r.s2>r.s1) ind[c].w++; else ind[c].l++; });
     });
-    
-    const sorted = Object.keys(MEMBERS).sort((a,b) => ind[b].w - ind[a].w || (ind[b].gf - ind[b].ga) - (ind[a].gf - ind[a].ga));
-    
-    document.getElementById('standings-content').innerHTML = sorted.map((k,i) => `
+    const sorted=Object.keys(MEMBERS).sort((a,b)=>ind[b].w-ind[a].w||(ind[b].gf-ind[b].ga)-(ind[a].gf-ind[a].ga));
+    document.getElementById('standings-content').innerHTML = sorted.map((k,i)=>`
       <div style="display:flex;align-items:center;gap:15px;padding:15px 0;border-bottom:1px solid var(--border);">
-        <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:900;width:30px;color:${i<3?varColors[i]:'var(--muted)'}">${i+1}</div>
+        <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:900;width:30px;">${i+1}</div>
         <div style="width:35px;height:35px;background:${tColor[MEMBERS[k].team]};border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;">${k}</div>
-        <div style="flex:1;">
-          <div style="font-weight:800;font-size:14px;">${MEMBERS[k].name}</div>
-          <div style="font-size:10px;color:var(--muted);font-weight:700;">ĐỘI ${MEMBERS[k].team} · HS: ${ind[k].gf-ind[k].ga}</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-family:'Barlow Condensed';font-size:22px;font-weight:900;color:var(--white);">${ind[k].w}W-${ind[k].l}L</div>
-          <div style="font-size:9px;font-weight:800;color:var(--t3);">${Math.round(ind[k].w/(ind[k].w+ind[k].l)*100)||0}% WIN</div>
-        </div>
-      </div>
-    `).join('');
+        <div style="flex:1;"><div style="font-weight:800;font-size:14px;">${MEMBERS[k].name}</div><div style="font-size:10px;color:var(--muted);">ĐỘI ${MEMBERS[k].team}</div></div>
+        <div style="text-align:right;"><div style="font-family:'Barlow Condensed';font-size:22px;font-weight:900;">${ind[k].w}W-${ind[k].l}L</div></div>
+      </div>`).join('');
   } else {
-    // TEAM STANDINGS
-    const t = { 1:{w:0,l:0,pts:0}, 2:{w:0,l:0,pts:0}, 3:{w:0,l:0,pts:0} };
-    SCHEDULE.forEach(s => {
-      const r = RESULTS[`${s.round}-${s.court}`]; if(!r) return;
-      const t1 = PAIRS[s.pair1_id].team; const t2 = PAIRS[s.pair2_id].team;
-      if(r.s1 > r.s2) { t[t1].w++; t[t2].l++; } else { t[t2].w++; t[t1].l++; }
+    const t={1:{w:0,l:0,pts:0},2:{w:0,l:0,pts:0},3:{w:0,l:0,pts:0}};
+    SCHEDULE.forEach(s=>{
+      const r=RESULTS[`${s.round}-${s.court}`]; if(!r) return;
+      const t1=PAIRS[s.pair1_id].team, t2=PAIRS[s.pair2_id].team;
+      if(r.s1>r.s2){ t[t1].w++; t[t2].l++; } else { t[t2].w++; t[t1].l++; }
       t[t1].pts+=r.s1; t[t2].pts+=r.s2;
     });
-    const sorted = [1,2,3].sort((a,b) => t[b].w - t[a].w || t[b].pts - t[a].pts);
-    document.getElementById('standings-content').innerHTML = sorted.map((tid, i) => `
+    const sorted=[1,2,3].sort((a,b)=>t[b].w-t[a].w||t[b].pts-t[a].pts);
+    document.getElementById('standings-content').innerHTML = sorted.map((tid,i)=>`
       <div style="background:var(--card);padding:20px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:15px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:15px;">
-           <div style="font-size:32px;font-weight:900;color:${varColors[i]}">#${i+1}</div>
-           <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:800;">ĐỘI ${tid}</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-family:'Barlow Condensed';font-size:28px;font-weight:900;color:var(--white);">${t[tid].w} THẮNG - ${t[tid].l} THUA</div>
-          <div style="font-size:11px;color:var(--muted);font-weight:700;">TỔNG ĐIỂM: ${t[tid].pts}</div>
-        </div>
-      </div>
-    `).join('');
+        <div style="font-size:32px;font-weight:900;color:var(--nba-blue)">#${i+1}</div>
+        <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:800;">ĐỘI ${tid}</div>
+        <div style="text-align:right;font-family:'Barlow Condensed';font-size:24px;font-weight:900;">${t[tid].w}W - ${t[tid].l}L</div>
+      </div>`).join('');
   }
 }
 
-const varColors = ['#f1c40f', '#bdc3c7', '#e67e22'];
-const tColor = ['', '#3b82f6', '#f59e0b', '#10b981'];
-
-async function refreshData(){
-  await loadData(); refreshUI(); showToast('Đã đồng bộ dữ liệu mới nhất!');
+function showToast(msg, type='info'){
+  const t=document.createElement('div');
+  t.style.cssText="background:var(--surface);border:1px solid var(--border);color:var(--white);padding:12px 20px;border-radius:8px;margin-bottom:10px;box-shadow:0 10px 30px rgba(0,0,0,0.5);display:flex;align-items:center;gap:10px;animation:slideIn 0.3s ease-out;";
+  t.innerHTML=`<span>${type==='error'?'❌':'✅'}</span> <b>${msg}</b>`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(()=>t.remove(),3000);
 }
 </script>
 </body>
