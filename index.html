@@ -3,109 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>🏸 NBA Badminton Tournament</title>
+<title>🏸 NBA Badminton - Pro Tournament</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --bg:#0b0e14; --surface:#161b22; --card:#1c2128;
-  --border:#30363d; --border-active:#58a6ff;
-  --text:#f0f6fc; --muted:#8b949e;
-  --nba-blue:#006bb6; --nba-red:#ed174c;
+  --bg:#0d1117; --surface:#161b22; --card:#21262d;
+  --border:#30363d; --nba-blue:#006bb6; --nba-red:#ed174c;
+  --text:#c9d1d9; --white:#f0f6fc; --muted:#8b949e;
   --t1:#3b82f6; --t2:#f59e0b; --t3:#10b981;
-  --gold:#f1c40f; --silver:#bdc3c7; --bronze:#e67e22;
-  --radius:12px; --nav-h:65px;
+  --radius:10px; --nav-h:70px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:var(--nav-h);overflow-x:hidden;}
 
-/* ── UI COMPONENTS ── */
-.top-bar{background:rgba(22,27,34,0.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;letter-spacing:1px;color:#fff;display:flex;align-items:center;gap:10px;}
-.logo span{background:linear-gradient(90deg, var(--nba-blue), var(--nba-red)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;}
+/* ── MODERN UI COMPONENTS ── */
+.top-bar{background:rgba(22,27,34,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;letter-spacing:1px;color:#fff;display:flex;align-items:center;}
+.logo span{color:var(--nba-red); margin-left:5px;}
 
-.user-chip{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:30px;padding:5px 15px 5px 5px;cursor:pointer;}
-.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;}
+/* ── PROGRESS BAR ── */
+.progress-container{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:10px;}
+.progress-fill{height:100%;background:linear-gradient(90deg, var(--nba-blue), var(--t3));transition:width 1s ease-in-out;}
 
-/* ── NAVIGATION ── */
+/* ── MATCH CARDS (MODERN) ── */
+.match-card{padding:18px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);margin-bottom:15px;position:relative;}
+.match-card.win-1{border-left:4px solid var(--t1);}
+.match-card.win-2{border-right:4px solid var(--t2);}
+.match-status{position:absolute;top:10px;right:10px;font-size:10px;font-weight:900;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
+.status-live{background:var(--nba-red);color:#fff;animation:pulse 1s infinite;}
+.status-done{background:var(--t3);color:#fff;}
+
+.match-vs{display:grid;grid-template-columns:1fr 50px 1fr;align-items:center;margin:10px 0;}
+.team-code{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--white);}
+.score-box{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:var(--white);text-align:center;}
+.team-names{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+
+/* ── TOAST NOTIFICATION ── */
+#toast-container{position:fixed;top:20px;right:20px;z-index:1000;}
+.toast{background:var(--surface);border:1px solid var(--border);color:var(--white);padding:12px 20px;border-radius:8px;margin-bottom:10px;box-shadow:0 10px 30px rgba(0,0,0,0.5);display:flex;align-items:center;gap:10px;animation:slideIn 0.3s ease-out;}
+@keyframes slideIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
+
+/* ── TABS ── */
+.tab-container{display:flex;background:var(--surface);border-radius:25px;padding:4px;margin-bottom:20px;border:1px solid var(--border);}
+.tab-btn{flex:1;padding:8px;border-radius:20px;border:none;background:none;color:var(--muted);font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer;}
+.tab-btn.active{background:var(--card);color:var(--white);box-shadow:0 2px 10px rgba(0,0,0,0.2);}
+
+/* ── BOTTOM NAV ── */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--muted);transition:all .2s;background:none;border:none;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:none;border:none;color:var(--muted);cursor:pointer;}
 .nav-item.active{color:var(--nba-blue);}
-.nav-item .nav-icon{font-size:22px;}
-.nav-item span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
 
-/* ── PAGES & LAYOUT ── */
 main{padding:20px;max-width:800px;margin:0 auto;}
-.page-anim{animation:fadeIn 0.3s ease-out;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:15px;box-shadow:0 4px 15px rgba(0,0,0,0.2);}
-.card-hd{padding:15px 20px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.card-hd-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:1px;}
-.card-bd{padding:20px;}
-
-/* ── STATS & RANKINGS ── */
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
-.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:15px;text-align:center;}
-.stat-val{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;line-height:1;margin-bottom:5px;}
-.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;}
-
-.rank-item{display:flex;align-items:center;gap:15px;padding:15px 0;border-bottom:1px solid var(--border);}
-.rank-pos{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;width:35px;text-align:center;}
-.rank-pos.p1{color:var(--gold);}
-.rank-pos.p2{color:var(--silver);}
-.rank-pos.p3{color:var(--bronze);}
-
-/* ── MATCH CARDS ── */
-.match-card{padding:15px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);margin-bottom:12px;transition:0.2s;}
-.match-card:active{transform:scale(0.98);}
-.match-info{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;}
-.match-vs{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;text-align:center;}
-.team-name{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:0.5px;}
-.match-score{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;}
-.vs-label{font-size:12px;font-weight:800;color:var(--muted);}
-
-/* ── BUTTONS & INPUTS ── */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--radius);font-weight:800;cursor:pointer;border:none;transition:0.2s;}
-.btn-primary{background:var(--nba-blue);color:#fff;}
-.btn-block{width:100%;}
-.input{width:100%;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:#fff;font-size:16px;}
 .hidden{display:none !important;}
+@keyframes pulse{0%{opacity:1;}50%{opacity:0.6;}100%{opacity:1;}}
 
-/* ── REALTIME BADGE ── */
-.live-badge{background:var(--nba-red);color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:900;animation:pulse 1.5s infinite;}
-@keyframes pulse{0%{opacity:1;}50%{opacity:0.5;}100%{opacity:1;}}
-
-/* ── LOGIN ── */
-#login-screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;padding:25px;}
-.login-content{width:100%;max-width:400px;text-align:center;}
+/* ── INPUT PRO STYLE ── */
+.score-row{display:flex;align-items:center;justify-content:center;gap:15px;margin:20px 0;}
+.score-input{width:80px;height:80px;background:var(--bg);border:2px solid var(--border);border-radius:15px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:40px;font-weight:900;color:var(--white);}
+.score-input:focus{border-color:var(--nba-blue);outline:none;}
 </style>
 </head>
 <body>
 
-<div id="login-screen">
-  <div class="login-content">
-    <div class="logo" style="justify-content:center;font-size:40px;margin-bottom:10px;">🏀 NBA <span>BADMINTON</span></div>
-    <div style="color:var(--muted);margin-bottom:40px;font-weight:600;">HỆ THỐNG QUẢN LÝ GIẢI ĐẤU CHUYÊN NGHIỆP</div>
-    <div class="card" style="padding:25px;text-align:left;">
-      <div class="form-group" style="margin-bottom:20px;">
-        <label style="display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px;text-transform:uppercase;">Tên đăng nhập</label>
-        <input type="text" id="login-user" class="input" placeholder="admin">
+<div id="toast-container"></div>
+
+<div id="login-screen" style="position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="width:100%;max-width:380px;text-align:center;">
+    <div class="logo" style="font-size:45px;justify-content:center;margin-bottom:10px;">NBA<span>🏸</span></div>
+    <div style="color:var(--muted);margin-bottom:35px;font-weight:600;letter-spacing:1px;">TOURNAMENT MANAGEMENT PRO</div>
+    <div style="background:var(--surface);padding:30px;border-radius:20px;border:1px solid var(--border);text-align:left;">
+      <div style="margin-bottom:20px;">
+        <label style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;">Tên đăng nhập</label>
+        <input type="text" id="login-user" style="width:100%;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:#fff;">
       </div>
-      <div class="form-group" style="margin-bottom:30px;">
-        <label style="display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px;text-transform:uppercase;">Mật khẩu</label>
-        <input type="password" id="login-pw" class="input" placeholder="••••••••">
+      <div style="margin-bottom:30px;">
+        <label style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;">Mật khẩu</label>
+        <input type="password" id="login-pw" style="width:100%;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:#fff;">
       </div>
-      <div id="login-err" class="alert alert-warn hidden" style="color:var(--nba-red);margin-bottom:15px;font-size:14px;font-weight:600;">❌ Thông tin đăng nhập không đúng!</div>
-      <button class="btn btn-primary btn-block" onclick="doLogin()">ĐĂNG NHẬP HỆ THỐNG</button>
+      <button onclick="doLogin()" style="width:100%;padding:16px;background:var(--nba-blue);color:#fff;border:none;border-radius:10px;font-weight:800;cursor:pointer;">ĐĂNG NHẬP NGAY</button>
     </div>
   </div>
 </div>
 
 <div class="top-bar">
-  <div class="logo">NBA <span>SPORT</span></div>
-  <div class="user-chip" id="user-chip" onclick="if(confirm('Đăng xuất?')) location.reload()">
-    <div class="avatar" id="user-avatar" style="background:var(--nba-blue)">?</div>
+  <div class="logo">NBA<span>SPORT</span></div>
+  <div id="user-info" style="display:flex;align-items:center;gap:10px;background:var(--card);padding:5px 15px 5px 5px;border-radius:25px;border:1px solid var(--border);cursor:pointer;" onclick="location.reload()">
+    <div id="user-avatar" style="width:30px;height:30px;background:var(--nba-blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;">?</div>
     <span id="user-label" style="font-size:13px;font-weight:700;">Đang tải...</span>
   </div>
 </div>
@@ -113,69 +97,54 @@ main{padding:20px;max-width:800px;margin:0 auto;}
 <main>
   <!-- OVERVIEW PAGE -->
   <div id="page-overview" class="page-anim hidden">
-    <div class="sec-title" style="margin-bottom:20px;">DASHBOARD <span>TRANG CHỦ</span></div>
-    <div class="stat-grid" id="overview-stats"></div>
-    <div class="card">
-      <div class="card-hd"><span class="card-hd-title">🏆 Bảng Xếp Hạng Đội</span></div>
-      <div class="card-bd" id="team-cards" style="padding:10px 20px;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;">DASHBOARD</div>
+      <button onclick="refreshData()" style="background:none;border:none;color:var(--nba-blue);font-weight:800;font-size:12px;cursor:pointer;">🔄 LÀM MỚI</button>
     </div>
-    <div class="card">
-      <div class="card-hd"><span class="card-hd-title">🔥 Trận Đấu Gần Nhất</span></div>
-      <div class="card-bd" id="recent-results" style="padding:10px 20px;"></div>
+    
+    <div style="background:var(--card);padding:20px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;">
+        <span style="color:var(--muted)">TIẾN ĐỘ GIẢI ĐẤU</span>
+        <span id="prog-val" style="color:var(--t3)">0%</span>
+      </div>
+      <div class="progress-container"><div id="prog-fill" class="progress-fill" style="width:0%"></div></div>
     </div>
 
-    <!-- ADMIN TOOLS -->
-    <div id="admin-tools" class="hidden" style="margin-top:20px; padding:0 5px;">
-      <div style="font-size:11px; font-weight:800; color:var(--muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Công cụ Quản trị</div>
-      <button class="btn btn-block" style="background:rgba(237,23,76,0.1); border:1px solid var(--nba-red); color:var(--nba-red); font-size:12px;" onclick="resetResults()">
-        ⚠️ RESET TOÀN BỘ KẾT QUẢ GIẢI ĐẤU
-      </button>
-    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;" id="stat-cards"></div>
+
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;margin-bottom:15px;color:var(--muted);">🔥 ĐANG DIỄN RA / GẦN NHẤT</div>
+    <div id="live-matches"></div>
   </div>
 
   <!-- SCHEDULE PAGE -->
   <div id="page-schedule" class="page-anim hidden">
-    <div class="sec-title">LỊCH <span>THI ĐẤU</span></div>
-    <div class="filter-row" style="margin-top:15px;">
-      <select class="filter-select" id="sch-round" onchange="renderSchedule()"></select>
-      <select class="filter-select" id="sch-court" onchange="renderSchedule()">
-        <option value="0">TẤT CẢ SÂN</option>
-        <option value="1">SÂN 1</option><option value="2">SÂN 2</option><option value="3">SÂN 3</option>
-      </select>
-    </div>
-    <div id="schedule-content" style="margin-top:20px;"></div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;margin-bottom:20px;">LỊCH THI ĐẤU</div>
+    <div class="tab-container" id="sch-round-tabs"></div>
+    <div id="schedule-content"></div>
   </div>
 
   <!-- SCORE ENTRY PAGE -->
   <div id="page-enter" class="page-anim hidden">
-    <div class="sec-title">TRỌNG TÀI <span>NHẬP ĐIỂM</span></div>
-    <div id="enter-alert" style="margin-top:10px;"></div>
-    <div id="enter-content" style="margin-top:20px;"></div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;margin-bottom:20px;">NHẬP ĐIỂM 🎾</div>
+    <div id="enter-content"></div>
   </div>
 
-  <!-- RANKINGS PAGE -->
+  <!-- STANDINGS PAGE -->
   <div id="page-standings" class="page-anim hidden">
-    <div class="sec-title">BẢNG <span>XẾP HẠNG</span></div>
-    <div class="card">
-      <div class="card-hd"><span class="card-hd-title">👤 VẬN ĐỘNG VIÊN XUẤT SẮC</span></div>
-      <div class="card-bd" id="ind-standings"></div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;margin-bottom:20px;">XẾP HẠNG</div>
+    <div class="tab-container">
+      <button class="tab-btn active" onclick="switchStandings('ind')">Cá nhân</button>
+      <button class="tab-btn" onclick="switchStandings('team')">Đội nhóm</button>
     </div>
+    <div id="standings-content"></div>
   </div>
 </main>
 
 <nav class="bottom-nav">
-  <button class="nav-item active" onclick="showPage('overview')" id="nav-overview">
-    <span class="nav-icon">📊</span><span>Tổng quan</span>
-  </button>
-  <button class="nav-item" onclick="showPage('schedule')" id="nav-schedule">
-    <span class="nav-icon">📅</span><span>Lịch đấu</span>
-  </button>
-  <button class="nav-item" onclick="showPage('enter')" id="nav-enter">
-    <span class="nav-icon">✏️</span><span>Ghi điểm</span>
-  </button>
-  <button class="nav-item" onclick="showPage('standings')" id="nav-standings">
-    <span class="nav-icon">🏆</span><span>Xếp hạng</span>
-  </button>
+  <button class="nav-item active" onclick="showPage('overview')" id="nav-overview"><span>📊</span><span>TỔNG QUAN</span></button>
+  <button class="nav-item" onclick="showPage('schedule')" id="nav-schedule"><span>📅</span><span>LỊCH ĐẤU</span></button>
+  <button class="nav-item" onclick="showPage('enter')" id="nav-enter"><span>✏️</span><span>GHI ĐIỂM</span></button>
+  <button class="nav-item" onclick="showPage('standings')" id="nav-standings"><span>🏆</span><span>XẾP HẠNG</span></button>
 </nav>
 
 <script>
@@ -188,91 +157,74 @@ const { createClient } = supabase;
 const _db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─────────────────────────────────────
-// INITIAL DATA
+// STATE MANAGEMENT (No more hardcode)
 // ─────────────────────────────────────
-const SCHEDULE = [
-  {round:1,court:1,pair:'EG1',pair2:'EG3',refTeam:3}, {round:1,court:2,pair:'AB2',pair2:'AB3',refTeam:3}, {round:1,court:3,pair:'DF1',pair2:'DF3',refTeam:3},
-  {round:2,court:1,pair:'AD1',pair2:'AD3',refTeam:3}, {round:2,court:2,pair:'EG2',pair2:'EG3',refTeam:3}, {round:2,court:3,pair:'CF1',pair2:'CF3',refTeam:3},
-  {round:3,court:1,pair:'AC1',pair2:'AC2',refTeam:2}, {round:3,court:2,pair:'BD2',pair2:'BD3',refTeam:2}, {round:3,court:3,pair:'EG1',pair2:'EG2',refTeam:3},
-  {round:4,court:1,pair:'AB2',pair2:'AB1',refTeam:2}, {round:4,court:2,pair:'CE1',pair2:'CE3',refTeam:2}, {round:4,court:3,pair:'DF1',pair2:'DF2',refTeam:2},
-  {round:5,court:1,pair:'DG1',pair2:'DG2',refTeam:2}, {round:5,court:2,pair:'BE1',pair2:'BE2',refTeam:2}, {round:5,court:3,pair:'AC3',pair2:'AC1',refTeam:2},
-  {round:6,court:1,pair:'BD3',pair2:'BD1',refTeam:1}, {round:6,court:2,pair:'CF2',pair2:'CF1',refTeam:2}, {round:6,court:3,pair:'NGHI2',pair2:'',refTeam:0},
-  {round:7,court:1,pair:'AD2',pair2:'AD1',refTeam:1}, {round:7,court:2,pair:'CE2',pair2:'CE3',refTeam:2}, {round:7,court:3,pair:'FG1',pair2:'FG3',refTeam:2},
-  {round:8,court:1,pair:'AC2',pair2:'AC3',refTeam:2}, {round:8,court:2,pair:'DF2',pair2:'DF3',refTeam:1}, {round:8,court:3,pair:'BE3',pair2:'BE2',refTeam:1},
-  {round:9,court:1,pair:'DG1',pair2:'DG3',refTeam:1}, {round:9,court:2,pair:'CF1',pair2:'CF2',refTeam:3}, {round:9,court:3,pair:'BE1',pair2:'BE3',refTeam:1},
-  {round:10,court:1,pair:'FG1',pair2:'FG2',refTeam:1}, {round:10,court:2,pair:'AD1',pair2:'AD2',refTeam:3}, {round:10,court:3,pair:'NGHI1',pair2:'',refTeam:0},
-  {round:11,court:1,pair:'FG2',pair2:'FG3',refTeam:1}, {round:11,court:2,pair:'CE1',pair2:'CE2',refTeam:1}, {round:11,court:3,pair:'BD3',pair2:'BD2',refTeam:1},
-  {round:12,court:1,pair:'DG2',pair2:'DG3',refTeam:1}, {round:12,court:2,pair:'AB3',pair2:'AB1',refTeam:1}, {round:12,court:3,pair:'NGHI3',pair2:'',refTeam:0},
-];
-const PAIR_DEF = {};
-['AB','AC','AD','BD','BE','CE','CF','DF','DG','EG','FG'].forEach(p=>{ [1,2,3].forEach(t=>{ const key=p+t; PAIR_DEF[key]={codes:[p[0]+t, p[1]+t], team:t}; }); });
-
-// ─────────────────────────────────────
-// STATE & REALTIME
-// ─────────────────────────────────────
-let USERS = [], MEMBERS = {}, results = {}, currentUser = null;
+let USERS = [], MEMBERS = {}, RESULTS = {}, PAIRS = {}, SCHEDULE = [];
+let currentUser = null;
+let currentStandingsTab = 'ind';
 
 async function loadData(){
-  const { data: u } = await _db.from('app_users').select('*'); if(u) USERS = u;
-  const { data: m } = await _db.from('members').select('*'); if(m) m.forEach(i => MEMBERS[i.code] = i);
-  const { data: r } = await _db.from('results').select('*');
-  results = {}; if(r) r.forEach(i => results[i.match_key] = i);
+  const [u, m, r, p, s] = await Promise.all([
+    _db.from('app_users').select('*'),
+    _db.from('members').select('*'),
+    _db.from('results').select('*'),
+    _db.from('pairs').select('*'),
+    _db.from('schedule').select('*').order('round').order('court')
+  ]);
+  
+  if(u.data) USERS = u.data;
+  if(m.data) m.data.forEach(i => MEMBERS[i.code] = i);
+  if(p.data) p.data.forEach(i => PAIRS[i.id] = i);
+  if(s.data) SCHEDULE = s.data;
+  
+  RESULTS = {};
+  if(r.data) r.data.forEach(i => RESULTS[i.match_key] = i);
 }
 
-// LẮNG NGHE THAY ĐỔI DỮ LIỆU TỰ ĐỘNG
-function initRealtime(){
-  _db.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'results' }, payload => {
-    if(payload.eventType === 'DELETE') delete results[payload.old.match_key];
-    else results[payload.new.match_key] = payload.new;
-    refreshUI();
-  }).subscribe();
+function showToast(msg, type='info'){
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type==='error'?'❌':'✅'}</span> <b>${msg}</b>`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 3000);
 }
 
-function refreshUI(){
-  const activePage = ['overview','schedule','enter','standings'].find(p => !document.getElementById('page-'+p).classList.contains('hidden'));
-  if(activePage === 'overview') renderOverview();
-  if(activePage === 'schedule') renderSchedule();
-  if(activePage === 'enter') renderEnter();
-  if(activePage === 'standings') renderStandings();
-}
-
+// ─────────────────────────────────────
+// AUTH LOGIC (Security fixed)
+// ─────────────────────────────────────
 async function doLogin(){
   const uname = document.getElementById('login-user').value.trim().toLowerCase();
   const pw = document.getElementById('login-pw').value;
+  
   await loadData();
   const user = USERS.find(u => u.username.toLowerCase() === uname && u.password === pw);
+  
   if(!user && !(uname==='xem' && pw==='')){
-    document.getElementById('login-err').classList.remove('hidden'); return;
+    showToast('Thông tin đăng nhập sai!', 'error'); return;
   }
+  
   currentUser = user || {username:'xem', role:'viewer', label:'Khán giả', team:0};
   document.getElementById('login-screen').classList.add('hidden');
   initRealtime(); initApp();
 }
 
-function isAdmin(){ return currentUser?.role === 'admin'; }
-
-async function resetResults() {
-  if (!isAdmin()) return;
-  const confirmPw = prompt("XÁC NHẬN ADMIN: Nhập mật khẩu ADMIN để xóa toàn bộ kết quả giải đấu:");
-  if (confirmPw === 'admin123') { // Mật khẩu admin mặc định
-    if (confirm("CẢNH BÁO: Hành động này sẽ XÓA VĨNH VIỄN toàn bộ điểm số đã nhập. Bạn chắc chắn chứ?")) {
-      const { error } = await _db.from('results').delete().neq('match_key', 'none');
-      if (!error) {
-        results = {}; alert("Đã Reset toàn bộ giải đấu về trạng thái ban đầu!");
-        refreshUI();
-      } else { alert("Lỗi khi reset: " + error.message); }
-    }
-  } else if (confirmPw !== null) {
-    alert("Sai mật khẩu xác nhận!");
-  }
+function initRealtime(){
+  _db.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'results' }, async () => {
+    const { data } = await _db.from('results').select('*');
+    RESULTS = {}; data.forEach(i => RESULTS[i.match_key] = i);
+    refreshUI();
+  }).subscribe();
 }
 
 function initApp(){
   document.getElementById('user-avatar').textContent = currentUser.role==='admin'?'👑':currentUser.team||'👁';
   document.getElementById('user-label').textContent = currentUser.label;
-  if(isAdmin()) document.getElementById('admin-tools').classList.remove('hidden');
-  const rounds = [...new Set(SCHEDULE.map(s=>s.round))].sort((a,b)=>a-b);
-  document.getElementById('sch-round').innerHTML = '<option value="0">TẤT CẢ LƯỢT</option>' + rounds.map(r=>`<option value="${r}">LƯỢT ${r}</option>`).join('');
+  
+  const rounds = [...new Set(SCHEDULE.map(s => s.round))];
+  document.getElementById('sch-round-tabs').innerHTML = rounds.map((r,i) => 
+    `<button class="tab-btn ${i===0?'active':''}" onclick="filterRound(${r}, this)">Lượt ${r}</button>`
+  ).join('');
+  
   showPage('overview');
 }
 
@@ -285,132 +237,205 @@ function showPage(id){
 }
 
 // ─────────────────────────────────────
-// RENDER HELPERS
+// RENDERERS
 // ─────────────────────────────────────
-const tColor=['','#3b82f6','#f59e0b','#10b981'];
-function getPairTeam(p){ if(p.startsWith('NGHI')) return parseInt(p.replace('NGHI','')); return PAIR_DEF[p]?.team || 0; }
-function getPairCode(p){ if(p.startsWith('NGHI')) return '—'; return PAIR_DEF[p]?.codes.join('+') || p; }
-function getPairMembers(p){ if(p.startsWith('NGHI')) return ''; return PAIR_DEF[p]?.codes.map(c=>MEMBERS[c]?.name).join(' + '); }
-function getKey(r,c){ return `${r}-${c}`; }
-
-function getTeamStats(){
-  const s={1:{w:0,l:0,pl:0,gf:0,ga:0},2:{w:0,l:0,pl:0,gf:0,ga:0},3:{w:0,l:0,pl:0,gf:0,ga:0}};
-  SCHEDULE.forEach(m=>{
-    if(m.pair.startsWith('NGHI')) return;
-    const r=results[getKey(m.round,m.court)]; if(!r) return;
-    const t1=getPairTeam(m.pair); const t2=getPairTeam(m.pair2);
-    if(t1){ s[t1].pl++; s[t1].gf+=+r.s1; s[t1].ga+=+r.s2; if(+r.s1>+r.s2)s[t1].w++; else if(+r.s2>+r.s1)s[t1].l++; }
-    if(t2){ s[t2].pl++; s[t2].gf+=+r.s2; s[t2].ga+=+r.s1; if(+r.s2>+r.s1)s[t2].w++; else if(+r.s1>+r.s2)s[t2].l++; }
-  });
-  return s;
+function refreshUI(){
+  const active = ['overview','schedule','enter','standings'].find(p => !document.getElementById('page-'+p).classList.contains('hidden'));
+  if(active === 'overview') renderOverview();
+  if(active === 'schedule') renderSchedule(1);
+  if(active === 'enter') renderEnter();
+  if(active === 'standings') renderStandings();
 }
 
 function renderOverview(){
-  const total=SCHEDULE.filter(s=>!s.pair.startsWith('NGHI')).length;
-  const done=SCHEDULE.filter(s=>!s.pair.startsWith('NGHI')&&results[getKey(s.round,s.court)]).length;
-  document.getElementById('overview-stats').innerHTML=`
-    <div class="stat-box"><div class="stat-val" style="color:var(--nba-blue)">${total}</div><div class="stat-lbl">Tổng Trận</div></div>
-    <div class="stat-box"><div class="stat-val" style="color:var(--t3)">${done}</div><div class="stat-lbl">Đã Xong</div></div>
-    <div class="stat-box"><div class="stat-val" style="color:var(--gold)">${Math.round(done/total*100)}%</div><div class="stat-lbl">Tiến Độ</div></div>
-  `;
-  const st = getTeamStats();
-  document.getElementById('team-cards').innerHTML = [1,2,3].sort((a,b)=>st[b].w - st[a].w).map(t => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:30px;height:30px;background:${tColor[t]};border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;">${t}</div>
-        <div style="font-weight:700">ĐỘI ${t}</div>
-      </div>
-      <div style="font-family:'Barlow Condensed';font-size:20px;font-weight:800;">${st[t].w} Thắng - ${st[t].l} Thua</div>
-    </div>`).join('');
+  const total = SCHEDULE.filter(s => s.pair1_id && s.pair2_id).length;
+  const done = SCHEDULE.filter(s => RESULTS[`${s.round}-${s.court}`]).length;
+  const pct = Math.round((done/total)*100) || 0;
   
-  const recent = SCHEDULE.filter(s => results[getKey(s.round,s.court)]).slice(-3).reverse();
-  document.getElementById('recent-results').innerHTML = recent.map(s => {
-    const r = results[getKey(s.round,s.court)];
-    return `<div style="padding:12px 0;border-bottom:1px solid var(--border);">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:5px">LƯỢT ${s.round} - SÂN ${s.court}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:800">${getPairCode(s.pair)}</span>
-        <span style="font-family:'Barlow Condensed';font-size:24px;font-weight:900;color:var(--gold)">${r.s1} - ${r.s2}</span>
-        <span style="font-weight:800">${getPairCode(s.pair2)}</span>
+  document.getElementById('prog-val').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  
+  document.getElementById('stat-cards').innerHTML = `
+    <div style="background:var(--card);padding:15px;border-radius:var(--radius);border:1px solid var(--border);">
+      <div style="font-size:10px;color:var(--muted);font-weight:900;">TỔNG TRẬN</div>
+      <div style="font-family:'Barlow Condensed';font-size:32px;font-weight:900;color:var(--nba-blue);">${total}</div>
+    </div>
+    <div style="background:var(--card);padding:15px;border-radius:var(--radius);border:1px solid var(--border);">
+      <div style="font-size:10px;color:var(--muted);font-weight:900;">ĐÃ HOÀN THÀNH</div>
+      <div style="font-family:'Barlow Condensed';font-size:32px;font-weight:900;color:var(--t3);">${done}</div>
+    </div>
+  `;
+  
+  const live = SCHEDULE.filter(s => s.pair1_id && s.pair2_id).slice(-4).reverse();
+  document.getElementById('live-matches').innerHTML = live.map(s => {
+    const r = RESULTS[`${s.round}-${s.court}`];
+    const p1 = PAIRS[s.pair1_id]; const p2 = PAIRS[s.pair2_id];
+    return `
+      <div class="match-card ${r?(+r.s1>+r.s2?'win-1':'win-2'):''}">
+        <span class="match-status ${r?'status-done':'status-live'}">${r?'KẾT THÚC':'ĐANG CHỜ'}</span>
+        <div class="match-vs">
+          <div class="team-code" style="color:${tColor[p1.team]}">${s.pair1_id}</div>
+          <div class="score-box">${r?r.s1+':'+r.s2:'VS'}</div>
+          <div class="team-code" style="color:${tColor[p2.team]}">${s.pair2_id}</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:700;">
+          <span>${p1.codes.map(c=>MEMBERS[c]?.name).join(' + ')}</span>
+          <span>${p2.codes.map(c=>MEMBERS[c]?.name).join(' + ')}</span>
+        </div>
       </div>
-    </div>`;
+    `;
   }).join('');
 }
 
-function renderSchedule(){
-  const rf = +document.getElementById('sch-round').value;
-  const cf = +document.getElementById('sch-court').value;
-  let rows = SCHEDULE;
-  if(rf) rows = rows.filter(s => s.round === rf);
-  if(cf) rows = rows.filter(s => s.court === cf);
+function renderSchedule(round){
+  const rows = SCHEDULE.filter(s => s.round === round);
   document.getElementById('schedule-content').innerHTML = rows.map(s => {
-    const r = results[getKey(s.round,s.court)];
-    const isNghi = s.pair.startsWith('NGHI');
-    if(isNghi) return `<div class="match-card" style="opacity:0.5;border-style:dashed;"><div class="vs-label">ĐỘI ${getPairTeam(s.pair)} NGHỈ</div></div>`;
-    return `<div class="match-card">
-      <div class="match-info"><span>Lượt ${s.round} · Sân ${s.court}</span> ${r?'<span class="live-badge" style="background:var(--t3)">FINISH</span>':'<span class="live-badge">WAITING</span>'}</div>
-      <div class="match-vs">
-        <div class="team-name" style="color:${tColor[getPairTeam(s.pair)]}">${getPairCode(s.pair)}</div>
-        <div class="match-score">${r ? r.s1 + ':' + r.s2 : 'VS'}</div>
-        <div class="team-name" style="color:${tColor[getPairTeam(s.pair2)]}">${getPairCode(s.pair2)}</div>
+    const r = RESULTS[`${s.round}-${s.court}`];
+    const p1 = PAIRS[s.pair1_id]; const p2 = PAIRS[s.pair2_id];
+    if(!p2) return `<div class="match-card" style="opacity:0.5;border-style:dashed;text-align:center;"><div class="team-names">ĐỘI ${p1.team} NGHỈ LƯỢT NÀY</div></div>`;
+    return `
+      <div class="match-card">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:10px;">
+          <span>SÂN ${s.court}</span>
+          <span style="color:var(--t2)">TT: ĐỘI ${s.ref_team}</span>
+        </div>
+        <div class="match-vs">
+          <div class="team-code" style="color:${tColor[p1.team]}">${s.pair1_id}</div>
+          <div class="score-box" style="font-size:24px;">${r?r.s1+':'+r.s2:'VS'}</div>
+          <div class="team-code" style="color:${tColor[p2.team]}">${s.pair2_id}</div>
+        </div>
       </div>
-      <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:10px;">${getPairMembers(s.pair)} vs ${getPairMembers(s.pair2)}</div>
-    </div>`;
+    `;
   }).join('');
+}
+
+function filterRound(r, btn){
+  document.querySelectorAll('#sch-round-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); renderSchedule(r);
 }
 
 function renderEnter(){
-  if(currentUser.role==='viewer') { document.getElementById('enter-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">CHỈ DÀNH CHO TRỌNG TÀI</div>'; return; }
-  let rows = SCHEDULE.filter(s => !s.pair.startsWith('NGHI'));
-  if(currentUser.role!=='admin') rows = rows.filter(s => s.refTeam === currentUser.team);
+  if(currentUser.role === 'viewer') {
+    document.getElementById('enter-content').innerHTML = '<div style="text-align:center;padding:50px;color:var(--muted);font-weight:700;">CHỈ TRỌNG TÀI MỚI CÓ QUYỀN NHẬP ĐIỂM</div>';
+    return;
+  }
+  
+  let rows = SCHEDULE.filter(s => s.pair1_id && s.pair2_id);
+  if(currentUser.role !== 'admin') rows = rows.filter(s => s.ref_team === currentUser.team);
   
   document.getElementById('enter-content').innerHTML = rows.map(s => {
-    const key = getKey(s.round,s.court); const r = results[key] || {s1:'',s2:''};
-    return `<div class="card" style="padding:20px;margin-bottom:15px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:15px;font-size:12px;font-weight:800;color:var(--muted);">
-        <span>LƯỢT ${s.round} - SÂN ${s.court}</span>
-        <span style="color:var(--nba-blue)">${getPairCode(s.pair)} VS ${getPairCode(s.pair2)}</span>
+    const key = `${s.round}-${s.court}`;
+    const r = RESULTS[key] || {s1:'', s2:''};
+    return `
+      <div style="background:var(--card);border:1px solid var(--border);padding:20px;border-radius:var(--radius);margin-bottom:15px;">
+        <div style="text-align:center;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:15px;">LƯỢT ${s.round} - SÂN ${s.court}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="text-align:center;flex:1;">
+            <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:900;color:${tColor[PAIRS[s.pair1_id].team]}">${s.pair1_id}</div>
+          </div>
+          <div style="flex:2;display:flex;gap:10px;justify-content:center;align-items:center;">
+            <input type="number" id="s1-${key}" class="score-input" value="${r.s1}" min="0" max="30">
+            <span style="font-weight:900;color:var(--muted);">:</span>
+            <input type="number" id="s2-${key}" class="score-input" value="${r.s2}" min="0" max="30">
+          </div>
+          <div style="text-align:center;flex:1;">
+            <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:900;color:${tColor[PAIRS[s.pair2_id].team]}">${s.pair2_id}</div>
+          </div>
+        </div>
+        <button onclick="saveScore('${key}')" style="width:100%;margin-top:20px;padding:14px;background:var(--nba-red);border:none;border-radius:10px;color:#fff;font-weight:800;cursor:pointer;">
+          ${r.s1!==''?'CẬP NHẬT KẾT QUẢ':'LƯU ĐIỂM NGAY'}
+        </button>
       </div>
-      <div class="score-input-wrap">
-        <input class="sinput" type="number" id="s1-${key}" value="${r.s1}" placeholder="0">
-        <span class="vs-label">ĐIỂM</span>
-        <input class="sinput" type="number" id="s2-${key}" value="${r.s2}" placeholder="0">
-      </div>
-      <button class="btn btn-primary btn-block" style="margin-top:15px;" onclick="saveScore('${key}')">CẬP NHẬT KẾT QUẢ</button>
-    </div>`;
+    `;
   }).join('');
 }
 
 async function saveScore(key){
   const s1 = document.getElementById('s1-'+key).value;
   const s2 = document.getElementById('s2-'+key).value;
-  if(s1==='' || s2==='') { alert('Vui lòng nhập đủ điểm!'); return; }
-  const { error } = await _db.from('results').upsert({match_key:key, s1: +s1, s2: +s2});
-  if(!error) { if(navigator.vibrate) navigator.vibrate(50); alert('Đã cập nhật thành công!'); }
+  
+  if(s1 === '' || s2 === '') { showToast('Vui lòng nhập đủ điểm!', 'error'); return; }
+  if(s1 < 0 || s2 < 0 || s1 > 99 || s2 > 99) { showToast('Điểm số không hợp lệ!', 'error'); return; }
+  
+  if(RESULTS[key] && !confirm('Kết quả đã tồn tại, bạn có muốn ghi đè không?')) return;
+
+  const { error } = await _db.from('results').upsert({
+    match_key: key, s1: +s1, s2: +s2
+  });
+  
+  if(!error) {
+    showToast('Lưu kết quả thành công!');
+    await _db.from('audit_logs').insert({
+      username: currentUser.username,
+      match_key: key,
+      action: 'UPDATE',
+      details: { s1: +s1, s2: +s2 }
+    });
+  } else { showToast('Lỗi: ' + error.message, 'error'); }
+}
+
+function switchStandings(tab){
+  currentStandingsTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase().includes(tab==='ind'?'cá nhân':'đội')));
+  renderStandings();
 }
 
 function renderStandings(){
-  const ind = {};
-  Object.keys(MEMBERS).forEach(k => ind[k] = {w:0,l:0,pts:0});
-  SCHEDULE.forEach(s => {
-    const r = results[getKey(s.round,s.court)]; if(!r) return;
-    PAIR_DEF[s.pair]?.codes.forEach(c => { ind[c].pts+=r.s1; if(r.s1>r.s2) ind[c].w++; else ind[c].l++; });
-    PAIR_DEF[s.pair2]?.codes.forEach(c => { ind[c].pts+=r.s2; if(r.s2>r.s1) ind[c].w++; else ind[c].l++; });
-  });
-  const sorted = Object.keys(MEMBERS).sort((a,b) => ind[b].w - ind[a].w || ind[b].pts - ind[a].pts);
-  document.getElementById('ind-standings').innerHTML = sorted.map((k,i) => `
-    <div class="rank-item">
-      <div class="rank-pos p${i+1}">${i+1}</div>
-      <div class="member-avatar" style="background:${tColor[MEMBERS[k].team]}">${k}</div>
-      <div class="member-info">
-        <div class="member-name">${MEMBERS[k].name}</div>
-        <div style="font-size:11px;color:var(--muted)">ĐỘI ${MEMBERS[k].team}</div>
+  if(currentStandingsTab === 'ind'){
+    const ind = {};
+    Object.keys(MEMBERS).forEach(k => ind[k] = {w:0, l:0, pts:0, gf:0, ga:0});
+    SCHEDULE.forEach(s => {
+      const r = RESULTS[`${s.round}-${s.court}`]; if(!r) return;
+      PAIRS[s.pair1_id]?.codes.forEach(c => { ind[c].gf+=r.s1; ind[c].ga+=r.s2; if(r.s1>r.s2) ind[c].w++; else ind[c].l++; });
+      PAIRS[s.pair2_id]?.codes.forEach(c => { ind[c].gf+=r.s2; ind[c].ga+=r.s1; if(r.s2>r.s1) ind[c].w++; else ind[c].l++; });
+    });
+    
+    const sorted = Object.keys(MEMBERS).sort((a,b) => ind[b].w - ind[a].w || (ind[b].gf - ind[b].ga) - (ind[a].gf - ind[a].ga));
+    
+    document.getElementById('standings-content').innerHTML = sorted.map((k,i) => `
+      <div style="display:flex;align-items:center;gap:15px;padding:15px 0;border-bottom:1px solid var(--border);">
+        <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:900;width:30px;color:${i<3?varColors[i]:'var(--muted)'}">${i+1}</div>
+        <div style="width:35px;height:35px;background:${tColor[MEMBERS[k].team]};border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;">${k}</div>
+        <div style="flex:1;">
+          <div style="font-weight:800;font-size:14px;">${MEMBERS[k].name}</div>
+          <div style="font-size:10px;color:var(--muted);font-weight:700;">ĐỘI ${MEMBERS[k].team} · HS: ${ind[k].gf-ind[k].ga}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Barlow Condensed';font-size:22px;font-weight:900;color:var(--white);">${ind[k].w}W-${ind[k].l}L</div>
+          <div style="font-size:9px;font-weight:800;color:var(--t3);">${Math.round(ind[k].w/(ind[k].w+ind[k].l)*100)||0}% WIN</div>
+        </div>
       </div>
-      <div style="text-align:right">
-        <div style="font-family:'Barlow Condensed';font-size:20px;font-weight:800;">${ind[k].w}W - ${ind[k].l}L</div>
-        <div style="font-size:10px;color:var(--muted)">${ind[k].pts} PTS</div>
+    `).join('');
+  } else {
+    // TEAM STANDINGS
+    const t = { 1:{w:0,l:0,pts:0}, 2:{w:0,l:0,pts:0}, 3:{w:0,l:0,pts:0} };
+    SCHEDULE.forEach(s => {
+      const r = RESULTS[`${s.round}-${s.court}`]; if(!r) return;
+      const t1 = PAIRS[s.pair1_id].team; const t2 = PAIRS[s.pair2_id].team;
+      if(r.s1 > r.s2) { t[t1].w++; t[t2].l++; } else { t[t2].w++; t[t1].l++; }
+      t[t1].pts+=r.s1; t[t2].pts+=r.s2;
+    });
+    const sorted = [1,2,3].sort((a,b) => t[b].w - t[a].w || t[b].pts - t[a].pts);
+    document.getElementById('standings-content').innerHTML = sorted.map((tid, i) => `
+      <div style="background:var(--card);padding:20px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:15px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:15px;">
+           <div style="font-size:32px;font-weight:900;color:${varColors[i]}">#${i+1}</div>
+           <div style="font-family:'Barlow Condensed';font-size:24px;font-weight:800;">ĐỘI ${tid}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Barlow Condensed';font-size:28px;font-weight:900;color:var(--white);">${t[tid].w} THẮNG - ${t[tid].l} THUA</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700;">TỔNG ĐIỂM: ${t[tid].pts}</div>
+        </div>
       </div>
-    </div>`).join('');
+    `).join('');
+  }
+}
+
+const varColors = ['#f1c40f', '#bdc3c7', '#e67e22'];
+const tColor = ['', '#3b82f6', '#f59e0b', '#10b981'];
+
+async function refreshData(){
+  await loadData(); refreshUI(); showToast('Đã đồng bộ dữ liệu mới nhất!');
 }
 </script>
 </body>
