@@ -34,6 +34,12 @@ main:not(.active-page) { display: none !important; }
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* --- GLOBAL LOADER --- */
+#global-loader { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+.loader-icon { font-size: 50px; margin-bottom: 20px; animation: bounce 1s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5); }
+@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-20px); } }
+.loader-text { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900; color: var(--text); letter-spacing: 2px; animation: pulse 1.5s infinite; }
+
 /* --- HEADER & TOAST --- */
 .header { background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 15px 20px; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; }
 .logo { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900; color: var(--text); letter-spacing: 1px; display: flex; align-items: center; gap: 5px; }
@@ -163,6 +169,12 @@ main:not(.active-page) { display: none !important; }
 </style>
 </head>
 <body>
+
+<!-- MÀN HÌNH CHỜ TẢI DỮ LIỆU -->
+<div id="global-loader">
+    <div class="loader-icon">🏸</div>
+    <div class="loader-text">ĐANG TẢI DỮ LIỆU...</div>
+</div>
 
 <div id="toast-container"></div>
 
@@ -354,9 +366,17 @@ function showToast(msg, type = 'success') {
 function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
 
 async function init() {
+    // Hiển thị Loader khi bắt đầu
+    document.getElementById('global-loader').style.display = 'flex';
+    document.getElementById('global-loader').style.opacity = '1';
+
     await loadData();
     populateFilters();
     renderMatches();
+    
+    // Ẩn Loader sau khi tải xong
+    document.getElementById('global-loader').style.opacity = '0';
+    setTimeout(() => document.getElementById('global-loader').style.display = 'none', 500);
     
     db.channel('public-db').on('postgres_changes', {event:'*', schema:'public'}, async () => {
         await loadData();
@@ -364,6 +384,8 @@ async function init() {
         if(document.getElementById('page-matches').classList.contains('active-page')) renderMatches();
         if(document.getElementById('page-standings').classList.contains('active-page')) renderStandings();
         if(document.getElementById('page-dashboard').classList.contains('active-page')) renderDashboard();
+        if(document.getElementById('page-teams').classList.contains('active-page')) renderTeamsList();
+        if(document.getElementById('page-challenge').classList.contains('active-page')) renderChallengeMatches();
     }).subscribe();
 }
 
@@ -376,11 +398,26 @@ async function loadData() {
             db.from('results').select('*')
         ]);
         if(m.error) throw m.error;
+
+        // Reset dữ liệu cũ để tránh bị dồn/trùng lặp khi reload real-time
+        MEMBERS = {}; 
+        PAIRS = {}; 
+        SCHEDULE = []; 
+        RESULTS = {};
+
+        // Nạp dữ liệu mới từ Database
         if(m.data) m.data.forEach(i => MEMBERS[i.code] = i);
         if(p.data) p.data.forEach(i => PAIRS[i.id] = i);
         if(s.data) SCHEDULE = s.data;
         if(r.data) r.data.forEach(i => RESULTS[i.match_key] = i);
-    } catch (error) { showToast("Lỗi kết nối máy chủ!", "error"); }
+        
+    } catch (error) { 
+        console.error("Lỗi khi tải dữ liệu:", error);
+        showToast("Lỗi tải dữ liệu từ máy chủ!", "error"); 
+        // Ẩn loader nếu có lỗi để user không bị kẹt
+        document.getElementById('global-loader').style.opacity = '0';
+        setTimeout(() => document.getElementById('global-loader').style.display = 'none', 500);
+    }
 }
 
 // --- TELEGRAM WEBHOOK ---
