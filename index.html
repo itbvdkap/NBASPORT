@@ -364,12 +364,10 @@ let CURRENT_STANDING_TAB = 'team';
 let CURRENT_FILTERS = { round: 0, court: 0, player: 'ALL' };
 let IS_GRID_VIEW = false;
 
-// Config Telegram Bot (Nhập token và ChatID của nhóm giải đấu vào đây)
-const TELEGRAM_CONFIG = {
-    BOT_TOKEN: '', // VD: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
-    CHAT_ID: ''    // VD: '-1001234567890'
-};
+// Config Telegram Bot
+const TELEGRAM_CONFIG = { BOT_TOKEN: '', CHAT_ID: '' };
 
+// --- UTILITIES ---
 function showToast(msg, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -386,8 +384,16 @@ function showToast(msg, type = 'success') {
 
 function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
 
+// Hàm lọc Đội chuẩn xác 100%: Chỉ nhận số nguyên dương, loại bỏ NaN, 0, số âm, và 999 (Thách đấu)
+function getValidTeamId(teamVal) {
+    if (teamVal == null) return null;
+    const tId = parseInt(teamVal, 10);
+    if (isNaN(tId) || tId <= 0 || tId >= 999) return null;
+    return tId;
+}
+
+// --- INIT & REALTIME ---
 async function init() {
-    // Hiển thị Loader khi bắt đầu
     document.getElementById('global-loader').style.display = 'flex';
     document.getElementById('global-loader').style.opacity = '1';
 
@@ -395,7 +401,6 @@ async function init() {
     populateFilters();
     renderMatches();
     
-    // Ẩn Loader sau khi tải xong
     document.getElementById('global-loader').style.opacity = '0';
     setTimeout(() => document.getElementById('global-loader').style.display = 'none', 500);
     
@@ -421,22 +426,15 @@ async function loadData() {
         ]);
         if(m.error) throw m.error;
 
-        // Reset dữ liệu cũ để tránh bị dồn/trùng lặp khi reload real-time
-        MEMBERS = {}; 
-        PAIRS = {}; 
-        SCHEDULE = []; 
-        RESULTS = {};
+        MEMBERS = {}; PAIRS = {}; SCHEDULE = []; RESULTS = {};
 
-        // Nạp dữ liệu mới từ Database
         if(m.data) m.data.forEach(i => MEMBERS[i.code] = i);
         if(p.data) p.data.forEach(i => PAIRS[i.id] = i);
         if(s.data) SCHEDULE = s.data;
         if(r.data) r.data.forEach(i => RESULTS[i.match_key] = i);
         
     } catch (error) { 
-        console.error("Lỗi khi tải dữ liệu:", error);
         showToast("Lỗi tải dữ liệu từ máy chủ!", "error"); 
-        // Ẩn loader nếu có lỗi để user không bị kẹt
         document.getElementById('global-loader').style.opacity = '0';
         setTimeout(() => document.getElementById('global-loader').style.display = 'none', 500);
     }
@@ -468,30 +466,23 @@ async function sendTelegramNotification(matchKey, s1, s2, isFinish) {
 
 // --- MICRO-ANIMATIONS PAGE SWITCH ---
 window.switchPage = function(p, el) {
-    // Nav UI
     if(el) {
         document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
     }
-    // Filter bar logic
     document.getElementById('filter-bar').style.display = p === 'matches' ? 'flex' : 'none';
 
-    // Page Transition
     const pages = ['dashboard', 'matches', 'challenge', 'standings', 'admin', 'teams'];
     pages.forEach(pageId => {
         const pageEl = document.getElementById(`page-${pageId}`);
         if(pageId === p) {
             pageEl.classList.add('active-page');
-            // Trigger specific renders
             if(p === 'standings') renderStandings();
             if(p === 'dashboard') renderDashboard();
             if(p === 'matches') renderMatches();
             if(p === 'teams') renderTeamsList();
             if(p === 'admin') renderAdminLists();
-            if(p === 'challenge') {
-                populateChallengeSelectors();
-                renderChallengeMatches();
-            }
+            if(p === 'challenge') { populateChallengeSelectors(); renderChallengeMatches(); }
         } else {
             pageEl.classList.remove('active-page');
         }
@@ -531,7 +522,7 @@ function renderMatches() {
     const container = document.getElementById('page-matches');
     
     const filtered = SCHEDULE.filter(s => {
-        if (s.round === 999) return false; // Ẩn trận thách đấu khỏi lịch đấu chính
+        if (s.round === 999) return false;
 
         let matchRound = CURRENT_FILTERS.round === 0 || s.round === CURRENT_FILTERS.round;
         let matchCourt = CURRENT_FILTERS.court === 0 || s.court === CURRENT_FILTERS.court;
@@ -583,16 +574,12 @@ function renderMatches() {
                 </div>
 
                 <div class="m-controls">
-                    ${!s.is_live && !isDone ? `
-                        <button class="ctrl-btn btn-start" onclick="actionStart('${key}')"><span>▶</span><span>Bắt đầu</span></button>
-                    ` : ''}
+                    ${!s.is_live && !isDone ? `<button class="ctrl-btn btn-start" onclick="actionStart('${key}')"><span>▶</span><span>Bắt đầu</span></button>` : ''}
                     ${s.is_live ? `
                         <button class="ctrl-btn btn-update" onclick="openModal('${key}')"><span>🎯</span><span>Cập nhật</span></button>
                         <button class="ctrl-btn btn-end" onclick="actionEnd('${key}')"><span>🏁</span><span>Kết thúc</span></button>
                     ` : ''}
-                    ${isDone ? `
-                        <button class="ctrl-btn btn-done"><span>✅</span><span>Đã xong</span></button>
-                    ` : ''}
+                    ${isDone ? `<button class="ctrl-btn btn-done"><span>✅</span><span>Đã xong</span></button>` : ''}
                 </div>
             </div>
         `;
@@ -603,24 +590,22 @@ function renderMatches() {
 function renderTeamsList() {
     const container = document.getElementById('teams-list-container');
     
-    // Khởi tạo nhóm
     const groupedPairs = {};
     const groupedMembers = {};
     let allTeamIds = new Set();
 
-    // Nhóm Cặp đấu theo đội (Ép kiểu về Number để khắc phục lỗi trùng Đội do lẫn lộn dạng chuỗi/số)
+    // SỬ DỤNG BỘ LỌC CHUẨN MỚI
     Object.values(PAIRS).forEach(p => {
-        if (p.team == null || Number(p.team) === 999) return;
-        const tId = Number(p.team);
+        const tId = getValidTeamId(p.team);
+        if (!tId) return;
         if (!groupedPairs[tId]) groupedPairs[tId] = [];
         groupedPairs[tId].push(p);
         allTeamIds.add(tId);
     });
 
-    // Nhóm VĐV cá nhân theo đội (Ép kiểu về Number)
     Object.values(MEMBERS).forEach(m => {
-        if (m.team == null || Number(m.team) === 999) return;
-        const tId = Number(m.team);
+        const tId = getValidTeamId(m.team);
+        if (!tId) return;
         if (!groupedMembers[tId]) groupedMembers[tId] = [];
         groupedMembers[tId].push(m);
         allTeamIds.add(tId);
@@ -629,7 +614,7 @@ function renderTeamsList() {
     const teamIds = Array.from(allTeamIds).sort((a,b) => a - b);
     
     if (teamIds.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--muted);">Chưa có dữ liệu đội. Hãy dùng mục Quản Trị Viên để thêm mới.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--muted);">Chưa có dữ liệu đội hợp lệ.</div>`;
         return;
     }
 
@@ -649,14 +634,12 @@ function renderTeamsList() {
         const members = groupedMembers[teamId] || [];
         const colors = colorPalette[index % colorPalette.length];
 
-        // Render cột trái (Danh sách VĐV)
         const membersHtml = members.sort((a,b) => a.code.localeCompare(b.code)).map(m => `
             <div class="team-member-item" onclick="showPlayerProfile('${m.code}')">
                 ${m.name} <span class="team-member-code">${m.code}</span>
             </div>
         `).join('');
 
-        // Render cột phải (Danh sách Cặp đấu)
         const pairsHtml = pairs.sort((a,b) => a.id.localeCompare(b.id)).map(pair => {
             const memberNames = pair.codes.map(c => MEMBERS[c]?.name || c).join(' & ');
             return `
@@ -692,7 +675,6 @@ function renderTeamsList() {
     }).join('');
 }
 
-
 // --- CHALLENGE LOGIC ---
 function populateChallengeSelectors() {
     const sortedMembers = Object.values(MEMBERS).sort((a,b) => a.name.localeCompare(b.name));
@@ -725,7 +707,7 @@ window.createChallengeMatch = async function() {
         ]);
 
         await db.from('schedule').insert([{
-            round: 999, // Đánh dấu là trận thách đấu ngoài giải
+            round: 999, 
             court: parseInt(court),
             pair1_id: pair1Id,
             pair2_id: pair2Id,
@@ -742,7 +724,7 @@ window.createChallengeMatch = async function() {
 
 function renderChallengeMatches() {
     const container = document.getElementById('challenge-list');
-    const challengeMatches = SCHEDULE.filter(s => s.round === 999).sort((a, b) => b.id - a.id); // Trận mới nhất lên đầu
+    const challengeMatches = SCHEDULE.filter(s => s.round === 999).sort((a, b) => b.id - a.id);
 
     if (challengeMatches.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--muted);">Chưa có trận thách đấu nào.</div>`;
@@ -866,7 +848,6 @@ window.actionEnd = async function(key) {
         const s = SCHEDULE.find(i => `${i.round}-${i.court}` === key);
         await db.from('schedule').update({is_live: false}).eq('id', s.id);
         
-        // Bắn Webhook Telegram
         const res = RESULTS[key] || {s1:0, s2:0};
         sendTelegramNotification(key, res.s1, res.s2, true);
 
@@ -928,19 +909,24 @@ window.toggleStandings = function(type) {
 
 function calculateStats() {
     const teamStats = {}, indivStats = {};
+
+    // SỬ DỤNG BỘ LỌC CHUẨN MỚI
     Object.values(PAIRS).forEach(p => { 
-        if(p.team != null && Number(p.team) !== 999) {
-            const tId = Number(p.team);
+        const tId = getValidTeamId(p.team);
+        if(tId) {
             if(!teamStats[tId]) teamStats[tId] = { id: tId, w: 0, l: 0, hs: 0 }; 
         }
     });
-    Object.values(MEMBERS).forEach(m => { indivStats[m.code] = { id: m.code, name: m.name, w: 0, l: 0, hs: 0, form: [] }; });
+
+    Object.values(MEMBERS).forEach(m => { 
+        indivStats[m.code] = { id: m.code, name: m.name, w: 0, l: 0, hs: 0, form: [] }; 
+    });
 
     let completedMatches = 0;
     let totalOfficialMatches = 0;
 
     SCHEDULE.forEach(s => {
-        if (s.round === 999) return; // Bỏ qua trận thách đấu khỏi thống kê chính
+        if (s.round === 999) return; 
         totalOfficialMatches++;
 
         const r = RESULTS[`${s.round}-${s.court}`];
@@ -953,15 +939,14 @@ function calculateStats() {
         if(!p1 || !p2) return;
         const t1Win = r.s1 > r.s2;
 
-        if(p1.team != null && p2.team != null) {
-            const t1Id = Number(p1.team);
-            const t2Id = Number(p2.team);
-            if (t1Id !== 999 && t2Id !== 999) {
-                if(t1Win) { teamStats[t1Id].w++; teamStats[t2Id].l++; } 
-                else { teamStats[t2Id].w++; teamStats[t1Id].l++; }
-                teamStats[t1Id].hs += (r.s1 - r.s2); 
-                teamStats[t2Id].hs += (r.s2 - r.s1);
-            }
+        const t1Id = getValidTeamId(p1.team);
+        const t2Id = getValidTeamId(p2.team);
+
+        if (t1Id && t2Id) {
+            if(t1Win) { teamStats[t1Id].w++; teamStats[t2Id].l++; } 
+            else { teamStats[t2Id].w++; teamStats[t1Id].l++; }
+            teamStats[t1Id].hs += (r.s1 - r.s2); 
+            teamStats[t2Id].hs += (r.s2 - r.s1);
         }
 
         (p1.codes || []).forEach(code => {
@@ -991,12 +976,10 @@ function renderDashboard() {
     document.getElementById('dash-done-matches').innerText = stats.completed;
     document.getElementById('dash-progress').style.width = stats.total > 0 ? `${(stats.completed / stats.total) * 100}%` : '0%';
 
-    // Analytics logic
     let bestPairName = '--';
     if(stats.teams.length > 0) bestPairName = `Đội ${stats.teams[0].id} (+${stats.teams[0].hs})`;
     document.getElementById('dash-best-duo').innerText = bestPairName;
 
-    // Find longest streak
     let longestStreak = 0; let bestStreakPlayer = '--';
     stats.indivs.forEach(indiv => {
         let currentStreak = 0;
@@ -1035,12 +1018,11 @@ function renderStandings() {
 function renderAdminLists() {
     const sortedMembers = Object.values(MEMBERS).sort((a,b) => a.name.localeCompare(b.name));
     
-    // Nạp VĐV vào các thanh chọn Chia Cặp
     const mOptions = '<option value="">-- Chọn VĐV --</option>' + sortedMembers.map(m => `<option value="${m.code}">${m.name} (${m.code})</option>`).join('');
     document.getElementById('admin-pair-m1').innerHTML = mOptions;
     document.getElementById('admin-pair-m2').innerHTML = mOptions;
 
-    // Render danh sách VĐV
+    // Render danh sách VĐV (vẫn hiển thị tất cả để Admin dọn dẹp)
     const mList = document.getElementById('admin-members-list');
     mList.innerHTML = sortedMembers.map(m => `
         <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -1049,9 +1031,13 @@ function renderAdminLists() {
         </div>
     `).join('') || '<div style="color:var(--muted); font-size:12px;">Chưa có VĐV</div>';
 
-    // Render danh sách Cặp Đấu
+    // Render danh sách Cặp Đấu (hiển thị kể cả những cặp bị lỗi đội để Admin xóa, nhưng ẨN các trận Challenge 999)
     const pList = document.getElementById('admin-pairs-list');
-    const sortedPairs = Object.values(PAIRS).filter(p => p.team !== 999).sort((a,b) => a.id.localeCompare(b.id)); // Loại trừ nhóm Thách đấu (999)
+    const sortedPairs = Object.values(PAIRS).filter(p => {
+        const tId = parseInt(p.team, 10);
+        return tId !== 999 && p.team !== 'CHALLENGE';
+    }).sort((a,b) => a.id.localeCompare(b.id)); 
+
     pList.innerHTML = sortedPairs.map(p => `
         <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
             <div style="font-size: 13px;"><b>${p.id}</b>: ${p.codes.join(' & ')} <span style="color:var(--muted)">(Đội ${p.team})</span></div>
@@ -1073,6 +1059,7 @@ window.adminAddMember = async function() {
         showToast("Thêm VĐV thành công!");
         document.getElementById('admin-code').value = '';
         document.getElementById('admin-name').value = '';
+        document.getElementById('admin-team').value = '';
     } catch (e) { showToast("Mã VĐV đã tồn tại hoặc có lỗi", "error"); }
 }
 
