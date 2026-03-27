@@ -839,9 +839,23 @@ async function loadData() {
 
         MEMBERS = {}; PAIRS = {}; SCHEDULE = []; RESULTS = {};
 
-        if(m.data) m.data.forEach(i => MEMBERS[i.code] = i);
-        if(p.data) p.data.forEach(i => PAIRS[i.id] = i);
-        if(s.data) SCHEDULE = s.data;
+        // Sanitize data (Chuẩn hóa dữ liệu: tự động cắt bỏ khoảng trắng thừa và ép chữ hoa) để bộ lọc không bị sót trận
+        if(m.data) m.data.forEach(i => {
+            if(i.code) i.code = String(i.code).trim().toUpperCase();
+            MEMBERS[i.code] = i;
+        });
+        if(p.data) p.data.forEach(i => {
+            if(i.id) i.id = String(i.id).trim();
+            if(Array.isArray(i.codes)) i.codes = i.codes.map(c => String(c).trim().toUpperCase());
+            PAIRS[i.id] = i;
+        });
+        if(s.data) {
+            SCHEDULE = s.data.map(i => {
+                if(i.pair1_id) i.pair1_id = String(i.pair1_id).trim();
+                if(i.pair2_id) i.pair2_id = String(i.pair2_id).trim();
+                return i;
+            });
+        }
         if(r.data) r.data.forEach(i => RESULTS[i.match_key] = i);
         
     } catch (error) { 
@@ -1024,10 +1038,13 @@ function renderMatches() {
 
         let matchRound = CURRENT_FILTERS.round === 0 || s.round === CURRENT_FILTERS.round;
         let matchCourt = CURRENT_FILTERS.court === 0 || s.court === CURRENT_FILTERS.court;
+        
         let matchPlayer = true;
         if (CURRENT_FILTERS.player !== 'ALL') {
+            const searchCode = String(CURRENT_FILTERS.player).trim().toUpperCase();
             const p1 = PAIRS[s.pair1_id], p2 = PAIRS[s.pair2_id];
-            matchPlayer = (p1 && p1.codes && p1.codes.includes(CURRENT_FILTERS.player)) || (p2 && p2.codes && p2.codes.includes(CURRENT_FILTERS.player));
+            matchPlayer = (p1 && p1.codes && p1.codes.includes(searchCode)) || 
+                          (p2 && p2.codes && p2.codes.includes(searchCode));
         }
         
         return matchRound && matchCourt && matchPlayer && matchStatus;
