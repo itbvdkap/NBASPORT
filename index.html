@@ -179,22 +179,20 @@ main:not(.active-page) { display: none !important; }
 .nav-btn.active span:first-child { transform: translateY(-2px); }
 
 /* --- RESPONSIVE & LANDSCAPE (MOBILE) FIXES --- */
-.login-box { max-height: 90vh; overflow-y: auto; } /* Ngăn form đăng nhập bị mất nút khi màn hình quá thấp */
+.login-box { max-height: 90vh; overflow-y: auto; }
 
 @media (max-height: 600px) and (orientation: landscape) {
-    :root { --nav-h: 55px; } /* Thu nhỏ thanh menu dưới */
+    :root { --nav-h: 55px; } 
     body { padding-bottom: 70px; }
     
     .header { padding: 8px 15px; }
     .logo { font-size: 20px; }
     .nav-btn span:first-child { font-size: 18px; }
     
-    /* Thu gọn Form Đăng Nhập */
     .login-box { padding: 15px; }
     .login-box h2 { font-size: 24px !important; margin-bottom: 5px !important; }
     .login-input, .login-btn, .viewer-btn { padding: 10px; margin-bottom: 8px; font-size: 14px; }
     
-    /* Thu gọn Modal Bảng Điểm & Profile */
     .modal-header { padding: 10px 15px; }
     .modal-content { padding: 10px; gap: 10px; }
     .score-card { padding: 10px 5px; }
@@ -204,7 +202,6 @@ main:not(.active-page) { display: none !important; }
     .btn-minus { padding: 8px 0; font-size: 12px; }
     .finish-btn { padding: 10px; font-size: 15px; margin-top: 5px; }
     
-    /* Thu gọn Dashboard & Admin Panel */
     .dash-card { padding: 12px 10px; margin-bottom: 10px !important; }
     .admin-input { padding: 8px; margin-bottom: 8px !important; font-size: 13px; }
     .admin-btn { padding: 10px; font-size: 13px; }
@@ -222,12 +219,21 @@ main:not(.active-page) { display: none !important; }
 <div id="login-overlay">
     <div class="login-box">
         <h2 style="font-family:'Barlow Condensed'; font-size:32px; font-weight:900; margin-bottom:10px; color:var(--text);">🏸 NBA PRO</h2>
-        <p style="color:var(--muted); font-size:14px; margin-bottom:25px;">Hệ thống Quản lý Giải đấu Trực tuyến</p>
+        <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">Hệ thống Quản lý Giải đấu Trực tuyến</p>
         
+        <!-- QUICK LOGIN TEST BOX -->
+        <div style="background: rgba(255,255,255,0.05); border: 1px dashed var(--border); padding: 12px; border-radius: 10px; margin-bottom: 20px;">
+            <div style="font-size: 11px; font-weight: 800; color: var(--gold); margin-bottom: 8px; text-transform: uppercase;">🚀 Dành cho Tester: Truy cập nhanh</div>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="quickLogin('admin', 'admin')" style="flex: 1; padding: 8px; font-size: 12px; font-weight: bold; background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); border-radius: 6px; cursor: pointer; transition: 0.2s;">👑 ADMIN</button>
+                <button onclick="quickLogin('ref1', '123')" style="flex: 1; padding: 8px; font-size: 12px; font-weight: bold; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); color: var(--success); border-radius: 6px; cursor: pointer; transition: 0.2s;">🎯 TRỌNG TÀI 1</button>
+            </div>
+        </div>
+
         <input type="text" id="login-user" class="login-input" placeholder="Tài khoản">
         <input type="password" id="login-pass" class="login-input" placeholder="Mật khẩu">
         
-        <button class="login-btn" onclick="handleLogin()">ĐĂNG NHẬP (TRỌNG TÀI / ADMIN)</button>
+        <button class="login-btn" onclick="handleLogin()">ĐĂNG NHẬP BẰNG TÀI KHOẢN</button>
         
         <div style="display:flex; align-items:center; margin:15px 0;">
             <div style="flex:1; height:1px; background:var(--border);"></div>
@@ -541,6 +547,12 @@ window.onload = function() {
     }
 }
 
+window.quickLogin = function(u, p) {
+    document.getElementById('login-user').value = u;
+    document.getElementById('login-pass').value = p;
+    handleLogin();
+}
+
 window.handleLogin = async function() {
     const u = document.getElementById('login-user').value.trim();
     const p = document.getElementById('login-pass').value.trim();
@@ -548,7 +560,6 @@ window.handleLogin = async function() {
     if (!u || !p) return showToast("Vui lòng nhập tài khoản và mật khẩu", "error");
 
     try {
-        // Query từ bảng app_users do User cung cấp
         const { data, error } = await db.from('app_users').select('*').eq('username', u).eq('password', p).single();
         
         if (data) {
@@ -556,7 +567,6 @@ window.handleLogin = async function() {
             CURRENT_USER_LABEL = data.label || data.role.toUpperCase();
             completeLogin();
         } else {
-            // Backup tĩnh trong trường hợp Database chưa kịp thêm data app_users
             if (u === 'admin' && p === 'admin') { CURRENT_ROLE = 'admin'; CURRENT_USER_LABEL = 'ADMIN (Quyền cao nhất)'; completeLogin(); }
             else if (u === 'ref1' && p === '123') { CURRENT_ROLE = 'referee'; CURRENT_USER_LABEL = 'TRỌNG TÀI SÂN 1'; completeLogin(); }
             else if (u === 'ref2' && p === '123') { CURRENT_ROLE = 'referee'; CURRENT_USER_LABEL = 'TRỌNG TÀI SÂN 2'; completeLogin(); }
@@ -576,7 +586,7 @@ window.loginAsViewer = function() {
 }
 
 window.logout = function() {
-    window.location.href = window.location.origin + window.location.pathname; // Xoá query parameters và load lại
+    window.location.href = window.location.origin + window.location.pathname; 
 }
 
 function completeLogin() {
