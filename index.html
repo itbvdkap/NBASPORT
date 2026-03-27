@@ -110,7 +110,7 @@ main:not(.active-page) { display: none !important; }
 .team-id { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; color: var(--text); line-height: 1; margin-bottom: 4px; transition: color 0.3s; }
 .team-players { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.4; display: flex; flex-direction: column; gap: 2px; transition: color 0.3s; }
 
-/* CLICKABLE PLAYER NAME (Color will be injected via JS) */
+/* CLICKABLE PLAYER NAME */
 .player-link { cursor: pointer; border-bottom: 1px dashed var(--muted); transition: all 0.2s; display: inline-block; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .player-link:active { opacity: 0.7; }
 
@@ -118,7 +118,6 @@ main:not(.active-page) { display: none !important; }
 .score-display.live { color: var(--nba-red); text-shadow: 0 0 12px rgba(239, 68, 68, 0.4); border-color: rgba(239, 68, 68, 0.3); }
 .score-display.multi-set { font-size: 18px; padding: 4px 0; }
 .score-display.multi-set .set-line { font-size: 18px; }
-.score-display.multi-set .set-line.muted { color: var(--muted); font-size: 14px; opacity: 0.6; }
 
 .team-side.winner .team-id { color: var(--gold); }
 .team-side.winner::before { content: '👑'; position: absolute; top: -18px; font-size: 14px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
@@ -149,7 +148,7 @@ body.theme-cute .modal { background: rgba(255,241,242,0.8); }
 .set-tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer; color: var(--muted); transition: 0.2s; border: none; background: transparent; }
 .set-tab.active { background: var(--nba-blue); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-/* PLAYER PROFILE CARD NBA STYLE */
+/* PLAYER PROFILE CARD */
 .player-profile-card { background: linear-gradient(145deg, var(--card), var(--surface)); border-radius: 20px; padding: 25px; border: 1px solid var(--border); box-shadow: 0 15px 35px rgba(0,0,0,0.15); grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden; }
 .player-profile-card::after { content:''; position: absolute; top:-50%; left:-50%; width:200%; height:200%; background: radial-gradient(circle, rgba(128,128,128,0.05) 0%, transparent 60%); pointer-events: none; }
 .pp-avatar { width: 90px; height: 90px; background: var(--nba-blue); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 35px; border: 4px solid var(--bg); box-shadow: 0 5px 15px rgba(0,0,0,0.2); margin-bottom: 15px; z-index: 1; color: white; }
@@ -300,19 +299,11 @@ body.theme-cute .bottom-nav { background: rgba(255, 228, 230, 0.95); }
     <div style="display: flex; gap: 12px; align-items: center;">
         <div id="status-summary" style="font-size:12px; font-weight:800; padding: 4px 10px; border-radius: 20px;">--</div>
         
-        <!-- Toggle Theme -->
         <div onclick="toggleTheme()" style="cursor:pointer; font-size: 18px;" title="Đổi giao diện">🎨</div>
-        
-        <!-- Icon tạo mã QR cho khán giả -->
         <div onclick="showQR()" style="cursor:pointer; font-size: 18px;" title="Chia sẻ mã QR cho Khán giả">📱</div>
-        
-        <!-- Force Reload -->
         <div onclick="forceReloadData()" style="cursor:pointer; font-size: 18px;" title="Tải lại dữ liệu (Refresh)">🔄</div>
         
-        <!-- Nút Admin chỉ hiện nếu là admin -->
         <div id="btn-admin-nav" onclick="switchPage('admin', null)" style="cursor:pointer; font-size: 20px; filter: grayscale(1); display:none;" title="Quản trị viên">⚙️</div>
-        
-        <!-- Đăng xuất -->
         <div onclick="logout()" style="cursor:pointer; font-size: 18px; margin-left: 5px;" title="Đăng xuất">🚪</div>
     </div>
 </header>
@@ -483,7 +474,6 @@ body.theme-cute .bottom-nav { background: rgba(255, 228, 230, 0.95); }
         <div class="dash-label" style="margin-bottom: 10px; color: var(--nba-red);">3. SAO LƯU & RESET GIẢI ĐẤU</div>
         <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Dùng để sao lưu dữ liệu hiện tại và dọn dẹp điểm số rác trước ngày thi đấu chính thức. File SQL có thể copy dán thẳng vào Supabase SQL Editor để khôi phục.</p>
         
-        <!-- Nút Copy lệnh tạo cột Database cho 3 Set -->
         <button class="admin-btn" style="background: var(--card); color: var(--text); border: 1px solid var(--gold); margin-bottom: 15px; font-size: 12px;" onclick="copyAlterSQL()">📋 COPY LỆNH SQL THÊM CỘT 3 SET (CHO SUPABASE)</button>
 
         
@@ -621,7 +611,6 @@ function saveConfig() {
     renderMatches();
 }
 
-// Kiểm tra Set đấu có người thắng chưa
 function isSetWon(s1, s2) {
     const w = MATCH_CONFIG.winScore;
     const m = MATCH_CONFIG.maxScore;
@@ -632,7 +621,6 @@ function isSetWon(s1, s2) {
     return 0;
 }
 
-// Kiểm tra Trạng thái chung cuộc của Trận đấu
 function getMatchStatus(res) {
     const w1 = isSetWon(res.s1 || 0, res.s2 || 0);
     if (MATCH_CONFIG.sets === 1) {
@@ -779,6 +767,38 @@ window.copyAlterSQL = function() {
     }
 }
 
+// Cập nhật ngầm không làm phiền UI (không hiện loader, không làm mất focus trọng tài)
+window.silentReload = async function() {
+    // Nếu trọng tài đang mở bảng điểm thì tạm ngưng tự động cập nhật để tránh mất dữ liệu đang gõ
+    if (ACTIVE_KEY && CURRENT_ROLE !== 'viewer') return; 
+
+    try {
+        const [m, p, s, r] = await Promise.all([
+            db.from('members').select('*'),
+            db.from('pairs').select('*'),
+            db.from('schedule').select('*').order('round').order('court'),
+            db.from('results').select('*')
+        ]);
+        if(m.error) throw m.error;
+
+        MEMBERS = {}; PAIRS = {}; SCHEDULE = []; RESULTS = {};
+        if(m.data) m.data.forEach(i => MEMBERS[i.code] = i);
+        if(p.data) p.data.forEach(i => PAIRS[i.id] = i);
+        if(s.data) SCHEDULE = s.data;
+        if(r.data) r.data.forEach(i => RESULTS[i.match_key] = i);
+        
+        // Cập nhật lại UI dựa trên tab đang mở
+        if(document.getElementById('page-matches').classList.contains('active-page')) renderMatches();
+        if(document.getElementById('page-standings').classList.contains('active-page')) renderStandings();
+        if(document.getElementById('page-dashboard').classList.contains('active-page')) renderDashboard();
+        if(document.getElementById('page-teams').classList.contains('active-page')) renderTeamsList();
+        if(document.getElementById('page-challenge').classList.contains('active-page')) renderChallengeMatches();
+        if(CURRENT_ROLE === 'admin' && document.getElementById('page-admin').classList.contains('active-page')) renderAdminLists();
+    } catch(e) {
+        // Fallback ngầm nếu rớt mạng
+    }
+};
+
 // --- INIT APP AFTER LOGIN ---
 async function startApp() {
     document.getElementById('global-loader').style.display = 'flex';
@@ -791,16 +811,20 @@ async function startApp() {
     document.getElementById('global-loader').style.opacity = '0';
     setTimeout(() => document.getElementById('global-loader').style.display = 'none', 500);
     
+    // 1. Websocket Realtime
     db.channel('public-db').on('postgres_changes', {event:'*', schema:'public'}, async () => {
-        await loadData();
-        populateFilters();
-        if(document.getElementById('page-matches').classList.contains('active-page')) renderMatches();
-        if(document.getElementById('page-standings').classList.contains('active-page')) renderStandings();
-        if(document.getElementById('page-dashboard').classList.contains('active-page')) renderDashboard();
-        if(document.getElementById('page-teams').classList.contains('active-page')) renderTeamsList();
-        if(document.getElementById('page-challenge').classList.contains('active-page')) renderChallengeMatches();
-        if(CURRENT_ROLE === 'admin' && document.getElementById('page-admin').classList.contains('active-page')) renderAdminLists();
+        await silentReload();
     }).subscribe();
+
+    // 2. Polling Fallback: Tự động quét 15 giây/lần chống rớt mạng trên đt
+    setInterval(silentReload, 15000);
+
+    // 3. Tự làm mới khi điện thoại bật sáng hoặc chuyển về tab
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            silentReload();
+        }
+    });
 }
 
 async function loadData() {
@@ -1037,7 +1061,6 @@ function renderMatches() {
             return `<span class="player-link" style="color: ${color}; border-bottom-color: ${color}55" onclick="event.stopPropagation(); showPlayerProfile('${code}')">${name}</span>`;
         };
 
-        // Render Tỉ số theo Set
         let scoreLines = [`<span class="set-line">${res.s1||0} - ${res.s2||0}</span>`];
         if (MATCH_CONFIG.sets === 3) {
             if (res.s1_2>0 || res.s2_2>0 || isSetWon(res.s1||0, res.s2||0)!==0) {
