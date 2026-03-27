@@ -653,7 +653,12 @@ function getTeamTheme(teamId) {
     const tId = getValidTeamId(teamId);
     if (!tId) return { main: 'var(--text)', bg: 'transparent', glow: 'transparent' };
     
-    const allTeamIds = Array.from(new Set(Object.values(MEMBERS).map(m => getValidTeamId(m.team)).filter(t => t !== null))).sort((a,b) => a-b);
+    // Quét qua cả danh sách VĐV và Cặp đấu để đảm bảo không bỏ sót màu của Đội nào
+    let teamSet = new Set();
+    Object.values(MEMBERS).forEach(m => { const id = getValidTeamId(m.team); if(id) teamSet.add(id); });
+    Object.values(PAIRS).forEach(p => { const id = getValidTeamId(p.team); if(id) teamSet.add(id); });
+
+    const allTeamIds = Array.from(teamSet).sort((a,b) => a-b);
     const index = allTeamIds.indexOf(tId);
     return index !== -1 ? TEAM_PALETTE[index % TEAM_PALETTE.length] : { main: 'var(--text)', bg: 'transparent', glow: 'transparent' };
 }
@@ -767,6 +772,42 @@ window.copyAlterSQL = function() {
     }
 }
 
+// --- HÀM CHUẨN HÓA DỮ LIỆU CHUNG (FIX LỖI LỌC VĐV) ---
+function processSupabaseData(m, p, s, r) {
+    MEMBERS = {}; PAIRS = {}; SCHEDULE = []; RESULTS = {};
+
+    if(m.data) m.data.forEach(i => {
+        if(i.code) i.code = String(i.code).trim().toUpperCase();
+        MEMBERS[i.code] = i;
+    });
+
+    if(p.data) p.data.forEach(i => {
+        if(i.id) i.id = String(i.id).trim();
+        
+        // Ép tất cả các định dạng của Supabase (Array, JSON String, Text "{A1,A2}") về mảng chuẩn
+        let cArr = [];
+        if (Array.isArray(i.codes)) {
+            cArr = i.codes;
+        } else if (typeof i.codes === 'string') {
+            let cleanStr = i.codes.replace(/[{}[\]"]/g, ''); 
+            cArr = cleanStr.split(',');
+        }
+        i.codes = cArr.map(c => String(c).trim().toUpperCase()).filter(c => c !== '');
+        
+        PAIRS[i.id] = i;
+    });
+
+    if(s.data) {
+        SCHEDULE = s.data.map(i => {
+            if(i.pair1_id) i.pair1_id = String(i.pair1_id).trim();
+            if(i.pair2_id) i.pair2_id = String(i.pair2_id).trim();
+            return i;
+        });
+    }
+    
+    if(r.data) r.data.forEach(i => RESULTS[i.match_key] = i);
+}
+
 // Cập nhật ngầm không làm phiền UI (không hiện loader, không làm mất focus trọng tài)
 window.silentReload = async function() {
     // Nếu trọng tài đang mở bảng điểm thì tạm ngưng tự động cập nhật để tránh mất dữ liệu đang gõ
@@ -781,11 +822,7 @@ window.silentReload = async function() {
         ]);
         if(m.error) throw m.error;
 
-        MEMBERS = {}; PAIRS = {}; SCHEDULE = []; RESULTS = {};
-        if(m.data) m.data.forEach(i => MEMBERS[i.code] = i);
-        if(p.data) p.data.forEach(i => PAIRS[i.id] = i);
-        if(s.data) SCHEDULE = s.data;
-        if(r.data) r.data.forEach(i => RESULTS[i.match_key] = i);
+        processSupabaseData(m, p, s, r);
         
         // Cập nhật lại UI dựa trên tab đang mở
         if(document.getElementById('page-matches').classList.contains('active-page')) renderMatches();
@@ -837,26 +874,7 @@ async function loadData() {
         ]);
         if(m.error) throw m.error;
 
-        MEMBERS = {}; PAIRS = {}; SCHEDULE = []; RESULTS = {};
-
-        // Sanitize data (Chuẩn hóa dữ liệu: tự động cắt bỏ khoảng trắng thừa và ép chữ hoa) để bộ lọc không bị sót trận
-        if(m.data) m.data.forEach(i => {
-            if(i.code) i.code = String(i.code).trim().toUpperCase();
-            MEMBERS[i.code] = i;
-        });
-        if(p.data) p.data.forEach(i => {
-            if(i.id) i.id = String(i.id).trim();
-            if(Array.isArray(i.codes)) i.codes = i.codes.map(c => String(c).trim().toUpperCase());
-            PAIRS[i.id] = i;
-        });
-        if(s.data) {
-            SCHEDULE = s.data.map(i => {
-                if(i.pair1_id) i.pair1_id = String(i.pair1_id).trim();
-                if(i.pair2_id) i.pair2_id = String(i.pair2_id).trim();
-                return i;
-            });
-        }
-        if(r.data) r.data.forEach(i => RESULTS[i.match_key] = i);
+        processSupabaseData(m, p, s, r);
         
     } catch (error) { 
         showToast("Lỗi tải dữ liệu từ máy chủ!", "error"); 
@@ -1043,8 +1061,8 @@ function renderMatches() {
         if (CURRENT_FILTERS.player !== 'ALL') {
             const searchCode = String(CURRENT_FILTERS.player).trim().toUpperCase();
             const p1 = PAIRS[s.pair1_id], p2 = PAIRS[s.pair2_id];
-            matchPlayer = (p1 && p1.codes && p1.codes.includes(searchCode)) || 
-                          (p2 && p2.codes && p2.codes.includes(searchCode));
+            matchPlayer = (p1 && Array.isArray(p1.codes) && p1.codes.includes(searchCode)) || 
+                          (p2 && Array.isArray(p2.codes) && p2.codes.includes(searchCode));
         }
         
         return matchRound && matchCourt && matchPlayer && matchStatus;
@@ -1071,10 +1089,15 @@ function renderMatches() {
             s2Class = status.winner === 2 ? "winner" : "loser";
         }
 
-        const renderPlayerLink = (code) => {
+        const renderPlayerLink = (code, pairTeamId) => {
             const member = MEMBERS[code];
             const name = member ? `${code} - ${member.name}` : code;
-            const color = member ? getTeamTheme(member.team).main : 'var(--text)';
+            
+            // Ưu tiên lấy team của cá nhân, nếu trống thì mượn team của Cặp đấu
+            let tId = member ? getValidTeamId(member.team) : null;
+            if (!tId) tId = getValidTeamId(pairTeamId);
+            
+            const color = tId ? getTeamTheme(tId).main : 'var(--text)';
             return `<span class="player-link" style="color: ${color}; border-bottom-color: ${color}55" onclick="event.stopPropagation(); showPlayerProfile('${code}')">${name}</span>`;
         };
 
@@ -1128,12 +1151,12 @@ function renderMatches() {
                     <div class="m-teams-grid">
                         <div class="team-side ${s1Class}">
                             <div class="team-id">${s.pair1_id || '?'}</div>
-                            <div class="team-players">${p1?.codes.map(c=>renderPlayerLink(c)).join('') || 'Chưa xếp'}</div>
+                            <div class="team-players">${p1?.codes.map(c=>renderPlayerLink(c, p1?.team)).join(' & ') || 'Chưa xếp'}</div>
                         </div>
                         <div class="score-display ${multiClass} ${s.is_live ? 'live' : ''}">${scoreHtml}</div>
                         <div class="team-side ${s2Class}">
                             <div class="team-id">${s.pair2_id || '?'}</div>
-                            <div class="team-players">${p2?.codes.map(c=>renderPlayerLink(c)).join('') || 'Chưa xếp'}</div>
+                            <div class="team-players">${p2?.codes.map(c=>renderPlayerLink(c, p2?.team)).join(' & ') || 'Chưa xếp'}</div>
                         </div>
                     </div>
                 </div>
@@ -1292,10 +1315,14 @@ function renderChallengeMatches() {
             s2Class = status.winner === 2 ? "winner" : "loser";
         }
         
-        const renderPlayerLink = (code) => {
+        const renderPlayerLink = (code, pairTeamId) => {
             const member = MEMBERS[code];
             const name = member ? `${code} - ${member.name}` : code;
-            const color = member ? getTeamTheme(member.team).main : 'var(--text)';
+            
+            let tId = member ? getValidTeamId(member.team) : null;
+            if (!tId) tId = getValidTeamId(pairTeamId);
+            
+            const color = tId ? getTeamTheme(tId).main : 'var(--text)';
             return `<span class="player-link" style="color: ${color}; border-bottom-color: ${color}55" onclick="event.stopPropagation(); showPlayerProfile('${code}')">${name}</span>`;
         };
 
@@ -1336,11 +1363,11 @@ function renderChallengeMatches() {
                     </div>
                     <div class="m-teams-grid">
                         <div class="team-side ${s1Class}">
-                            <div class="team-players" style="font-size:13px; font-weight:700;">${p1?.codes.map(c=>renderPlayerLink(c)).join(' & ') || '?'}</div>
+                            <div class="team-players" style="font-size:13px; font-weight:700;">${p1?.codes.map(c=>renderPlayerLink(c, p1?.team)).join(' & ') || '?'}</div>
                         </div>
                         <div class="score-display ${multiClass} ${s.is_live ? 'live' : ''}">${scoreHtml}</div>
                         <div class="team-side ${s2Class}">
-                            <div class="team-players" style="font-size:13px; font-weight:700;">${p2?.codes.map(c=>renderPlayerLink(c)).join(' & ') || '?'}</div>
+                            <div class="team-players" style="font-size:13px; font-weight:700;">${p2?.codes.map(c=>renderPlayerLink(c, p2?.team)).join(' & ') || '?'}</div>
                         </div>
                     </div>
                 </div>
@@ -1656,6 +1683,7 @@ function renderStandings() {
 }
 
 window.showPlayerProfile = function(code) {
+    code = String(code).trim().toUpperCase();
     const member = MEMBERS[code];
     if(!member) return;
 
