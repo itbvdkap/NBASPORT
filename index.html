@@ -430,6 +430,24 @@ body.theme-cute .bottom-nav { background: rgba(255, 228, 230, 0.95); }
 <main id="page-admin" style="padding: 0 15px;">
     <h3 style="margin: 20px 0 15px; font-family: 'Barlow Condensed'; font-size: 24px;">⚙️ QUẢN TRỊ VIÊN</h3>
     
+    <div class="dash-card" style="align-items: stretch; text-align: left; border-color: rgba(16, 185, 129, 0.3); margin-bottom: 20px;">
+        <div class="dash-label" style="margin-bottom: 10px; color: var(--success);">⚙️ CẤU HÌNH LUẬT THI ĐẤU</div>
+        
+        <label style="font-size: 12px; color: var(--muted); margin-bottom: 4px; display: block;">ĐIỂM CHUẨN (Thắng khi cách 2 điểm)</label>
+        <input type="number" id="cfg-win" class="admin-input" value="21">
+        
+        <label style="font-size: 12px; color: var(--muted); margin-bottom: 4px; display: block;">ĐIỂM TỐI ĐA (Chạm là thắng)</label>
+        <input type="number" id="cfg-max" class="admin-input" value="30">
+        
+        <label style="font-size: 12px; color: var(--muted); margin-bottom: 4px; display: block;">SỐ SET THI ĐẤU</label>
+        <select id="cfg-sets" class="admin-input" style="margin-bottom: 15px !important;">
+            <option value="1">1 Set (Chạm điểm là kết thúc)</option>
+            <option value="3">3 Set (Tính năng cho bản cập nhật sau)</option>
+        </select>
+        
+        <button class="admin-btn" style="background: var(--success);" onclick="saveConfig()">💾 LƯU CẤU HÌNH</button>
+    </div>
+
     <div class="dash-card" style="align-items: stretch; text-align: left; margin-bottom: 20px;">
         <div class="dash-label" style="margin-bottom: 10px; color: var(--success);">1. THÊM & QUẢN LÝ VĐV</div>
         <div style="display: flex; gap: 8px; margin-bottom: 10px;">
@@ -476,7 +494,10 @@ body.theme-cute .bottom-nav { background: rgba(255, 228, 230, 0.95); }
 <!-- SCOREBOARD MODAL -->
 <div id="score-modal" class="modal">
     <div class="modal-header">
-        <div id="m-title" style="font-weight:900; font-family:'Barlow Condensed'; font-size:22px; color: var(--text);">SÂN - LƯỢT</div>
+        <div>
+            <div id="m-title" style="font-weight:900; font-family:'Barlow Condensed'; font-size:22px; color: var(--text); line-height:1;">SÂN - LƯỢT</div>
+            <div id="m-rules-badge" style="font-size:11px; color:var(--nba-blue); font-weight:bold; margin-top:4px;"></div>
+        </div>
         <button onclick="closeModal('score-modal')" style="background:var(--card); border:1px solid var(--border); color:var(--text); padding:8px 15px; border-radius:8px; font-size:12px; font-weight:800;">ĐÓNG</button>
     </div>
     <div class="modal-content">
@@ -528,9 +549,11 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// --- AUTHENTICATION STATE ---
-let CURRENT_ROLE = null; // 'admin', 'referee', 'viewer'
+// --- AUTHENTICATION & CONFIG STATE ---
+let CURRENT_ROLE = null; 
 let CURRENT_USER_LABEL = '';
+
+let MATCH_CONFIG = { winScore: 21, maxScore: 30, sets: 1 };
 
 let MEMBERS = {}, PAIRS = {}, SCHEDULE = [], RESULTS = {}, ACTIVE_KEY = null;
 let CURRENT_STANDING_TAB = 'team';
@@ -561,6 +584,29 @@ function toggleTheme() {
     document.body.className = `theme-${nextTheme}`;
     localStorage.setItem('nba_theme', nextTheme);
     showToast(`Đã đổi sang giao diện: ${nextTheme.toUpperCase()}`);
+}
+
+function loadConfig() {
+    const saved = localStorage.getItem('nba_match_config');
+    if (saved) MATCH_CONFIG = JSON.parse(saved);
+}
+
+function saveConfig() {
+    MATCH_CONFIG.winScore = parseInt(document.getElementById('cfg-win').value) || 21;
+    MATCH_CONFIG.maxScore = parseInt(document.getElementById('cfg-max').value) || 30;
+    MATCH_CONFIG.sets = parseInt(document.getElementById('cfg-sets').value) || 1;
+    localStorage.setItem('nba_match_config', JSON.stringify(MATCH_CONFIG));
+    showToast("Đã lưu cấu hình luật thi đấu!", "success");
+    renderMatches();
+}
+
+function isMatchWon(s1, s2) {
+    const w = MATCH_CONFIG.winScore;
+    const m = MATCH_CONFIG.maxScore;
+    if (s1 >= m || s2 >= m) return true;
+    if (s1 >= w && (s1 - s2) >= 2) return true;
+    if (s2 >= w && (s2 - s1) >= 2) return true;
+    return false;
 }
 
 function getValidTeamId(teamVal) {
@@ -599,6 +645,7 @@ function vibrate() { if (navigator.vibrate) navigator.vibrate(50); }
 window.onload = function() {
     const savedTheme = localStorage.getItem('nba_theme') || 'dark';
     document.body.className = `theme-${savedTheme}`;
+    loadConfig();
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('role') === 'viewer') {
@@ -622,7 +669,7 @@ window.handleLogin = async function() {
         const { data, error } = await db.from('app_users').select('*').eq('username', u).eq('password', p).single();
         
         if (data) {
-            CURRENT_ROLE = data.role; // 'admin', 'referee', etc.
+            CURRENT_ROLE = data.role; 
             CURRENT_USER_LABEL = data.label || data.role.toUpperCase();
             completeLogin();
         } else {
@@ -661,9 +708,8 @@ function completeLogin() {
     } else if (CURRENT_ROLE === 'viewer') {
         statusLabel.style.background = 'rgba(128, 128, 128, 0.1)';
         statusLabel.style.color = 'var(--muted)';
-        document.getElementById('challenge-creator-box').style.display = 'none'; // Ẩn tạo trận
+        document.getElementById('challenge-creator-box').style.display = 'none'; 
     } else {
-        // Referee
         statusLabel.style.background = 'rgba(16, 185, 129, 0.1)';
         statusLabel.style.color = 'var(--success)';
     }
@@ -726,7 +772,6 @@ async function loadData() {
     }
 }
 
-// Nút Force Reload Data thủ công (Tải lại)
 window.forceReloadData = async function() {
     document.getElementById('global-loader').style.display = 'flex';
     document.getElementById('global-loader').style.opacity = '1';
@@ -878,7 +923,7 @@ function renderMatches() {
         if (s.round === 999) return false;
         
         const res = RESULTS[`${s.round}-${s.court}`] || {s1:0, s2:0};
-        const isDone = (res.s1 >= 21 || res.s2 >= 21) && !s.is_live;
+        const isDone = isMatchWon(res.s1, res.s2) && !s.is_live;
 
         let matchStatus = true;
         if (CURRENT_FILTERS.status === 'LIVE') matchStatus = s.is_live;
@@ -907,7 +952,7 @@ function renderMatches() {
         const key = `${s.round}-${s.court}`;
         const res = RESULTS[key] || {s1:0, s2:0};
         const p1 = PAIRS[s.pair1_id], p2 = PAIRS[s.pair2_id];
-        const isDone = (res.s1 >= 21 || res.s2 >= 21) && !s.is_live;
+        const isDone = isMatchWon(res.s1, res.s2) && !s.is_live;
 
         let s1Class = "", s2Class = "";
         if(isDone) {
@@ -935,7 +980,6 @@ function renderMatches() {
                 </div>
             `;
         } else {
-            // Viewers can still share finished matches or see LIVE status
             if (isDone) {
                 controlsHtml = `
                     <div class="m-controls">
@@ -1115,7 +1159,7 @@ function renderChallengeMatches() {
         const key = `${s.round}-${s.court}`;
         const res = RESULTS[key] || {s1:0, s2:0};
         const p1 = PAIRS[s.pair1_id], p2 = PAIRS[s.pair2_id];
-        const isDone = (res.s1 >= 21 || res.s2 >= 21) && !s.is_live;
+        const isDone = isMatchWon(res.s1, res.s2) && !s.is_live;
 
         let s1Class = "", s2Class = "";
         if(isDone) {
@@ -1198,6 +1242,7 @@ window.openModal = function(key) {
     };
 
     document.getElementById('m-title').innerText = `SÂN ${s.court} - LƯỢT ${s.round}`;
+    document.getElementById('m-rules-badge').innerText = `LUẬT: CHẠM ${MATCH_CONFIG.winScore} (TỐI ĐA ${MATCH_CONFIG.maxScore}) - ${MATCH_CONFIG.sets} SET`;
     document.getElementById('m-vdv1').innerHTML = formatModalPlayers(p1);
     document.getElementById('m-vdv2').innerHTML = formatModalPlayers(p2);
     document.getElementById('m-input-s1').value = res.s1;
@@ -1240,13 +1285,17 @@ window.changeScore = async function(side, val) {
     const input = document.getElementById(`m-input-s${side}`);
     let score = parseInt(input.value) || 0;
     score = Math.max(0, score + val);
+    if (score > MATCH_CONFIG.maxScore) score = MATCH_CONFIG.maxScore;
     input.value = score;
     await updateToDB();
 }
 
 window.syncInputScore = async function(side) {
     const input = document.getElementById(`m-input-s${side}`);
-    if(isNaN(parseInt(input.value)) || parseInt(input.value) < 0) input.value = 0;
+    let score = parseInt(input.value);
+    if(isNaN(score) || score < 0) score = 0;
+    if(score > MATCH_CONFIG.maxScore) score = MATCH_CONFIG.maxScore;
+    input.value = score;
     await updateToDB();
 }
 
@@ -1299,7 +1348,7 @@ function calculateStats() {
 
         const r = RESULTS[`${s.round}-${s.court}`];
         if(!r) return;
-        const isDone = (r.s1 >= 21 || r.s2 >= 21) && !s.is_live;
+        const isDone = isMatchWon(r.s1, r.s2) && !s.is_live;
         if(!isDone) return;
         
         completedMatches++;
@@ -1433,7 +1482,7 @@ window.showPlayerProfile = function(code) {
     SCHEDULE.forEach(s => {
         const r = RESULTS[`${s.round}-${s.court}`];
         if(!r) return;
-        const isDone = (r.s1 >= 21 || r.s2 >= 21) && !s.is_live;
+        const isDone = isMatchWon(r.s1, r.s2) && !s.is_live;
         if(!isDone) return;
 
         const p1 = PAIRS[s.pair1_id], p2 = PAIRS[s.pair2_id];
@@ -1485,6 +1534,12 @@ window.showPlayerProfile = function(code) {
 
 // --- ADMIN FULL CRUD FUNCTIONS ---
 function renderAdminLists() {
+    if(document.getElementById('cfg-win')) {
+        document.getElementById('cfg-win').value = MATCH_CONFIG.winScore;
+        document.getElementById('cfg-max').value = MATCH_CONFIG.maxScore;
+        document.getElementById('cfg-sets').value = MATCH_CONFIG.sets;
+    }
+
     const sortedMembers = Object.values(MEMBERS).sort((a,b) => a.name.localeCompare(b.name));
     
     const mOptions = '<option value="">-- Chọn VĐV --</option>' + sortedMembers.map(m => `<option value="${m.code}">${m.name} (${m.code})</option>`).join('');
