@@ -135,16 +135,19 @@ main:not(.active-page) { display: none !important; }
 .st-name { font-weight: 800; font-size: 20px; color: var(--text); margin-bottom: 4px; }
 .st-stats { text-align: right; font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--muted); }
 
-/* --- TEAMS TAB --- */
+/* --- TEAMS TAB (SPLIT LAYOUT) --- */
 .team-group-card { background: var(--surface); border: 2px solid var(--team-color, var(--border)); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 15px var(--team-glow, rgba(0,0,0,0.1)); }
 .team-group-header { background: linear-gradient(90deg, var(--team-bg, var(--card)), transparent); padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; }
 .team-group-name { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900; color: var(--text); text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-.team-pair-list { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-.team-pair-item { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.05); }
-.team-pair-id { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--team-color, var(--text)); width: 50px; text-align: center; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 8px; }
-.team-members { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
-.team-member-badge { background: var(--team-bg, var(--card)); color: var(--text); border: 1px solid var(--team-color, var(--border)); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-.team-member-badge:active { transform: scale(0.95); }
+.team-split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; align-items: start; }
+.team-section-title { font-size: 11px; font-weight: 800; color: var(--team-color); margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+.team-member-list, .team-pair-list { display: flex; flex-direction: column; gap: 6px; }
+.team-member-item { background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; border-left: 3px solid var(--team-color); cursor: pointer; transition: 0.2s; }
+.team-member-item:active { transform: scale(0.98); }
+.team-member-code { font-size: 10px; color: var(--muted); display: block; margin-top: 2px; }
+.team-pair-item { background: rgba(0,0,0,0.2); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.05); }
+.team-pair-id { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; color: var(--text); background: var(--team-color); padding: 2px 6px; border-radius: 4px; align-self: flex-start; display: inline-block; }
+.team-pair-members { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3; }
 
 /* --- DASHBOARD & SUB-TABS --- */
 .sub-tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
@@ -279,12 +282,30 @@ main:not(.active-page) { display: none !important; }
 
 <main id="page-admin" style="padding: 0 15px;">
     <h3 style="margin: 20px 0 15px; font-family: 'Barlow Condensed'; font-size: 24px;">⚙️ QUẢN TRỊ VIÊN</h3>
-    <div class="dash-card" style="align-items: stretch; text-align: left;">
-        <div class="dash-label" style="margin-bottom: 15px;">Thêm Vận Động Viên (Demo DB)</div>
-        <input type="text" id="admin-code" class="admin-input" placeholder="Mã VĐV (vd: A1)">
-        <input type="text" id="admin-name" class="admin-input" placeholder="Tên hiển thị">
-        <input type="number" id="admin-team" class="admin-input" placeholder="Đội (số nguyên, vd: 1)">
-        <button class="admin-btn" onclick="adminAddMember()">+ THÊM VÀO DỮ LIỆU</button>
+    
+    <!-- Quản lý VĐV -->
+    <div class="dash-card" style="align-items: stretch; text-align: left; margin-bottom: 20px;">
+        <div class="dash-label" style="margin-bottom: 10px; color: var(--success);">1. THÊM & QUẢN LÝ VĐV</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <input type="text" id="admin-code" class="admin-input" placeholder="Mã (vd: A1)" style="flex: 1; margin-bottom: 0;">
+            <input type="text" id="admin-name" class="admin-input" placeholder="Tên VĐV" style="flex: 2; margin-bottom: 0;">
+            <input type="number" id="admin-team" class="admin-input" placeholder="Đội" style="flex: 1; margin-bottom: 0;">
+        </div>
+        <button class="admin-btn" onclick="adminAddMember()">+ THÊM VĐV</button>
+        <div id="admin-members-list" style="margin-top: 15px; max-height: 250px; overflow-y: auto; border-top: 1px solid var(--border); padding-top: 10px;"></div>
+    </div>
+
+    <!-- Quản lý Cặp đấu -->
+    <div class="dash-card" style="align-items: stretch; text-align: left; border-color: rgba(14, 165, 233, 0.3);">
+        <div class="dash-label" style="margin-bottom: 10px; color: var(--nba-blue);">2. CHIA CẶP ĐẤU</div>
+        <input type="text" id="admin-pair-id" class="admin-input" placeholder="Mã Cặp (vd: P1_Team1)">
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <select id="admin-pair-m1" class="admin-input" style="flex: 1; margin-bottom: 0;"></select>
+            <select id="admin-pair-m2" class="admin-input" style="flex: 1; margin-bottom: 0;"></select>
+        </div>
+        <input type="number" id="admin-pair-team" class="admin-input" placeholder="Đội của Cặp (vd: 1)">
+        <button class="admin-btn" style="background: var(--nba-blue);" onclick="adminAddPair()">+ TẠO CẶP ĐẤU</button>
+        <div id="admin-pairs-list" style="margin-top: 15px; max-height: 250px; overflow-y: auto; border-top: 1px solid var(--border); padding-top: 10px;"></div>
     </div>
 </main>
 
@@ -386,6 +407,7 @@ async function init() {
         if(document.getElementById('page-dashboard').classList.contains('active-page')) renderDashboard();
         if(document.getElementById('page-teams').classList.contains('active-page')) renderTeamsList();
         if(document.getElementById('page-challenge').classList.contains('active-page')) renderChallengeMatches();
+        if(document.getElementById('page-admin').classList.contains('active-page')) renderAdminLists();
     }).subscribe();
 }
 
@@ -465,6 +487,7 @@ window.switchPage = function(p, el) {
             if(p === 'dashboard') renderDashboard();
             if(p === 'matches') renderMatches();
             if(p === 'teams') renderTeamsList();
+            if(p === 'admin') renderAdminLists();
             if(p === 'challenge') {
                 populateChallengeSelectors();
                 renderChallengeMatches();
@@ -576,26 +599,38 @@ function renderMatches() {
     }).join('');
 }
 
-// --- TEAMS TAB LOGIC ---
+// --- TEAMS TAB LOGIC (SPLIT LAYOUT) ---
 function renderTeamsList() {
     const container = document.getElementById('teams-list-container');
     
-    // Group pairs by team
-    const groupedTeams = {};
+    // Khởi tạo nhóm
+    const groupedPairs = {};
+    const groupedMembers = {};
+    let allTeamIds = new Set();
+
+    // Nhóm Cặp đấu theo đội
     Object.values(PAIRS).forEach(p => {
-        if (p.team == null || p.team === 999) return; // Bỏ qua cặp không có đội hoặc cặp thách đấu
-        if (!groupedTeams[p.team]) groupedTeams[p.team] = [];
-        groupedTeams[p.team].push(p);
+        if (p.team == null || p.team === 999) return;
+        if (!groupedPairs[p.team]) groupedPairs[p.team] = [];
+        groupedPairs[p.team].push(p);
+        allTeamIds.add(p.team);
     });
 
-    const teamIds = Object.keys(groupedTeams).sort(); // Sort teams alphabetically/numerically
+    // Nhóm VĐV cá nhân theo đội
+    Object.values(MEMBERS).forEach(m => {
+        if (m.team == null || m.team === 999) return;
+        if (!groupedMembers[m.team]) groupedMembers[m.team] = [];
+        groupedMembers[m.team].push(m);
+        allTeamIds.add(m.team);
+    });
+
+    const teamIds = Array.from(allTeamIds).sort((a,b) => a - b);
     
     if (teamIds.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--muted);">Chưa có dữ liệu đội.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--muted);">Chưa có dữ liệu đội. Hãy dùng mục Quản Trị Viên để thêm mới.</div>`;
         return;
     }
 
-    // Define a palette of distinct colors for teams
     const colorPalette = [
         { main: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', glow: 'rgba(59, 130, 246, 0.3)' }, // Blue
         { main: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', glow: 'rgba(239, 68, 68, 0.3)' },   // Red
@@ -608,40 +643,47 @@ function renderTeamsList() {
     ];
 
     container.innerHTML = teamIds.map((teamId, index) => {
-        const pairs = groupedTeams[teamId];
-        // Assign color based on index, loop back if more teams than colors
+        const pairs = groupedPairs[teamId] || [];
+        const members = groupedMembers[teamId] || [];
         const colors = colorPalette[index % colorPalette.length];
-        
-        // Render pairs inside the team
-        const pairsHtml = pairs.sort((a,b) => a.id.localeCompare(b.id)).map(pair => {
-            const membersHtml = pair.codes.map(code => {
-                const member = MEMBERS[code];
-                const name = member ? member.name : code;
-                return `<div class="team-member-badge" onclick="event.stopPropagation(); showPlayerProfile('${code}')">${name}</div>`;
-            }).join('');
 
+        // Render cột trái (Danh sách VĐV)
+        const membersHtml = members.sort((a,b) => a.code.localeCompare(b.code)).map(m => `
+            <div class="team-member-item" onclick="showPlayerProfile('${m.code}')">
+                ${m.name} <span class="team-member-code">${m.code}</span>
+            </div>
+        `).join('');
+
+        // Render cột phải (Danh sách Cặp đấu)
+        const pairsHtml = pairs.sort((a,b) => a.id.localeCompare(b.id)).map(pair => {
+            const memberNames = pair.codes.map(c => MEMBERS[c]?.name || c).join(' & ');
             return `
                 <div class="team-pair-item">
                     <div class="team-pair-id">${pair.id}</div>
-                    <div class="team-members">
-                        ${membersHtml || '<span style="color:var(--muted); font-size:12px;">Chưa có VĐV</span>'}
-                    </div>
+                    <div class="team-pair-members">${memberNames || '<span style="color:var(--muted)">Chưa có VĐV</span>'}</div>
                 </div>
             `;
         }).join('');
 
-        // Apply specific CSS variables for this team card
         return `
             <div class="team-group-card" style="--team-color: ${colors.main}; --team-bg: ${colors.bg}; --team-glow: ${colors.glow};">
                 <div class="team-group-header">
                     <div style="font-size: 20px;">🛡️</div>
                     <div class="team-group-name">ĐỘI ${teamId}</div>
-                    <div style="margin-left: auto; font-size: 12px; font-weight: bold; color: var(--team-color); background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 12px;">
-                        ${pairs.length} CẶP
-                    </div>
                 </div>
-                <div class="team-pair-list">
-                    ${pairsHtml}
+                <div class="team-split-layout">
+                    <div>
+                        <div class="team-section-title">DANH SÁCH VĐV (${members.length})</div>
+                        <div class="team-member-list">
+                            ${membersHtml || '<span style="color:var(--muted); font-size:12px;">Chưa có VĐV</span>'}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="team-section-title">CÁC CẶP ĐẤU (${pairs.length})</div>
+                        <div class="team-pair-list">
+                            ${pairsHtml || '<span style="color:var(--muted); font-size:12px;">Chưa chia cặp</span>'}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -978,7 +1020,35 @@ function renderStandings() {
     `).join('');
 }
 
-// --- ADMIN FUNCTION ---
+// --- ADMIN FULL CRUD FUNCTIONS ---
+function renderAdminLists() {
+    const sortedMembers = Object.values(MEMBERS).sort((a,b) => a.name.localeCompare(b.name));
+    
+    // Nạp VĐV vào các thanh chọn Chia Cặp
+    const mOptions = '<option value="">-- Chọn VĐV --</option>' + sortedMembers.map(m => `<option value="${m.code}">${m.name} (${m.code})</option>`).join('');
+    document.getElementById('admin-pair-m1').innerHTML = mOptions;
+    document.getElementById('admin-pair-m2').innerHTML = mOptions;
+
+    // Render danh sách VĐV
+    const mList = document.getElementById('admin-members-list');
+    mList.innerHTML = sortedMembers.map(m => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div style="font-size: 13px;"><b>${m.code}</b>: ${m.name} <span style="color:var(--muted)">(Đội ${m.team})</span></div>
+            <button onclick="adminDeleteMember('${m.code}')" style="background:var(--nba-red); color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer;">XÓA</button>
+        </div>
+    `).join('') || '<div style="color:var(--muted); font-size:12px;">Chưa có VĐV</div>';
+
+    // Render danh sách Cặp Đấu
+    const pList = document.getElementById('admin-pairs-list');
+    const sortedPairs = Object.values(PAIRS).filter(p => p.team !== 999).sort((a,b) => a.id.localeCompare(b.id)); // Loại trừ nhóm Thách đấu (999)
+    pList.innerHTML = sortedPairs.map(p => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div style="font-size: 13px;"><b>${p.id}</b>: ${p.codes.join(' & ')} <span style="color:var(--muted)">(Đội ${p.team})</span></div>
+            <button onclick="adminDeletePair('${p.id}')" style="background:var(--nba-red); color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer;">XÓA</button>
+        </div>
+    `).join('') || '<div style="color:var(--muted); font-size:12px;">Chưa có Cặp đấu</div>';
+}
+
 window.adminAddMember = async function() {
     const code = document.getElementById('admin-code').value.trim().toUpperCase();
     const name = document.getElementById('admin-name').value.trim();
@@ -992,8 +1062,40 @@ window.adminAddMember = async function() {
         showToast("Thêm VĐV thành công!");
         document.getElementById('admin-code').value = '';
         document.getElementById('admin-name').value = '';
-        document.getElementById('admin-team').value = '';
     } catch (e) { showToast("Mã VĐV đã tồn tại hoặc có lỗi", "error"); }
+}
+
+window.adminDeleteMember = async function(code) {
+    if(!confirm(`Bạn chắc chắn muốn XÓA VĐV mang mã ${code}?`)) return;
+    const {error} = await db.from('members').delete().eq('code', code);
+    if(error) showToast("Lỗi: VĐV này có thể đang tồn tại trong một cặp đấu", "error");
+    else showToast("Đã xóa VĐV thành công");
+}
+
+window.adminAddPair = async function() {
+    const id = document.getElementById('admin-pair-id').value.trim();
+    const m1 = document.getElementById('admin-pair-m1').value;
+    const m2 = document.getElementById('admin-pair-m2').value;
+    const team = parseInt(document.getElementById('admin-pair-team').value);
+
+    if(!id || !m1 || !m2 || isNaN(team)) return showToast("Vui lòng nhập đủ thông tin", "error");
+    if(m1 === m2) return showToast("Vui lòng chọn 2 VĐV khác nhau", "error");
+
+    try {
+        const {error} = await db.from('pairs').insert([{ id, codes: [m1, m2], team }]);
+        if(error) throw error;
+        showToast("Tạo cặp thành công");
+        document.getElementById('admin-pair-id').value = '';
+    } catch(e) {
+        showToast("Mã cặp đã tồn tại hoặc có lỗi", "error");
+    }
+}
+
+window.adminDeletePair = async function(id) {
+    if(!confirm(`Bạn chắc chắn muốn XÓA Cặp đấu mang mã ${id}?`)) return;
+    const {error} = await db.from('pairs').delete().eq('id', id);
+    if(error) showToast("Lỗi: Cặp này có thể đã được xếp lịch thi đấu", "error");
+    else showToast("Đã xóa Cặp đấu thành công");
 }
 
 init();
