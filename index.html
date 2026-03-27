@@ -59,37 +59,37 @@ main:not(.active-page) { display: none !important; }
 .view-toggle { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: auto; }
 
 /* --- MATCH CARDS (LIST & GRID) --- */
-.match-list { padding: 0 15px; display: flex; flex-direction: column; gap: 8px; }
-.match-list.grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-.match-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); display: flex; min-height: 70px; overflow: hidden; transition: 0.3s; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.match-list { padding: 0 15px; display: flex; flex-direction: column; gap: 10px; }
+.match-list.grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.match-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); display: flex; min-height: 80px; overflow: hidden; transition: 0.3s; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 .match-card.is-live { border-color: var(--nba-red); box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); }
 .match-card.is-live::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--nba-red); }
 
-.m-info-block { flex: 1; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-.m-meta { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; display: flex; gap: 6px; align-items: center; letter-spacing: 0.5px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 2px; }
-.live-badge { background: var(--nba-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; animation: pulse 1.5s infinite; }
+.m-info-block { flex: 1; padding: 10px 12px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.m-meta { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; display: flex; gap: 6px; align-items: center; letter-spacing: 0.5px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 2px; }
+.live-badge { background: var(--nba-red); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-.m-teams-grid { display: grid; grid-template-columns: 1fr 60px 1fr; align-items: center; gap: 8px; }
+.m-teams-grid { display: grid; grid-template-columns: 1fr 75px 1fr; align-items: center; gap: 10px; }
 .team-side { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; width: 100%; }
-.team-id { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800; color: var(--text); line-height: 1; }
-.team-players { font-size: 14px; font-weight: 500; color: var(--muted); margin-top: 2px; line-height: 1.4; display: flex; flex-direction: column; gap: 2px; }
+.team-id { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; color: var(--text); line-height: 1; margin-bottom: 4px; }
+.team-players { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.4; display: flex; flex-direction: column; gap: 2px; }
 
 /* CLICKABLE PLAYER NAME (Color will be injected via JS) */
-.player-link { cursor: pointer; color: var(--text); border-bottom: 1px dashed var(--muted); transition: all 0.2s; display: inline-block; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.player-link { cursor: pointer; border-bottom: 1px dashed var(--muted); transition: all 0.2s; display: inline-block; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
 .player-link:active { opacity: 0.7; }
 
-.score-display { background: rgba(0,0,0,0.3); padding: 4px 0; border-radius: 6px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; border: 1px solid rgba(255,255,255,0.05); min-width: 55px; letter-spacing: 1px; }
-.score-display.live { color: var(--nba-red); text-shadow: 0 0 10px rgba(239, 68, 68, 0.4); border-color: rgba(239, 68, 68, 0.3); }
+.score-display { background: rgba(0,0,0,0.3); padding: 6px 0; border-radius: 8px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; border: 1px solid rgba(255,255,255,0.05); min-width: 70px; letter-spacing: 1px; color: white; }
+.score-display.live { color: var(--nba-red); text-shadow: 0 0 12px rgba(239, 68, 68, 0.5); border-color: rgba(239, 68, 68, 0.3); }
 
 .team-side.winner .team-id { color: var(--gold); }
-.team-side.winner::before { content: '👑'; position: absolute; top: -16px; font-size: 12px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+.team-side.winner::before { content: '👑'; position: absolute; top: -18px; font-size: 14px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
 .team-side.loser { opacity: 0.4; }
 
 /* --- CONTROLS --- */
-.m-controls { width: 65px; border-left: 1px solid var(--border); display: flex; flex-direction: column; background: rgba(0,0,0,0.1); }
-.ctrl-btn { flex: 1; border: none; background: none; color: var(--text); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
-.ctrl-btn span:first-child { font-size: 16px; }
+.m-controls { width: 70px; border-left: 1px solid var(--border); display: flex; flex-direction: column; background: rgba(0,0,0,0.1); }
+.ctrl-btn { flex: 1; border: none; background: none; color: var(--text); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+.ctrl-btn span:first-child { font-size: 18px; }
 .ctrl-btn:active { background: rgba(255,255,255,0.05); }
 .btn-start { color: var(--success); }
 .btn-update { color: var(--nba-blue); border-bottom: 1px solid var(--border); }
@@ -122,7 +122,7 @@ main:not(.active-page) { display: none !important; }
 .score-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
 .score-card.active-1::before { background: var(--nba-blue); }
 .score-card.active-2::before { background: var(--nba-red); }
-.m-vdv-name { font-size: 15px; font-weight: 700; color: var(--muted); text-align: center; margin-bottom: 15px; min-height: 45px; display: flex; align-items: center; justify-content: center; line-height: 1.3; }
+.m-vdv-name { font-size: 16px; font-weight: 700; color: var(--muted); text-align: center; margin-bottom: 15px; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.4; }
 .input-score { width: 100%; background: none; border: none; font-family: 'Barlow Condensed', sans-serif; font-size: 100px; font-weight: 900; color: var(--text); text-align: center; margin-bottom: 15px; outline: none; transition: color 0.2s; }
 .btn-plus-big { width: 100%; height: 90px; border-radius: 15px; border: none; background: var(--nba-blue); color: white; font-size: 40px; font-weight: 900; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: transform 0.1s; }
 .btn-plus-big:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0.2); }
@@ -184,9 +184,10 @@ main:not(.active-page) { display: none !important; }
 
 <header class="header">
     <div class="logo">🏸 NBA<span>PRO</span></div>
-    <div style="display: flex; gap: 10px; align-items: center;">
+    <div style="display: flex; gap: 12px; align-items: center;">
         <div id="status-summary" style="font-size:12px; font-weight:800; color:var(--success); background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px;">TRỌNG TÀI</div>
-        <div onclick="switchPage('admin', null)" style="cursor:pointer; font-size: 20px; filter: grayscale(1);">⚙️</div>
+        <div onclick="forceReloadData()" style="cursor:pointer; font-size: 18px;" title="Tải lại dữ liệu (Refresh)">🔄</div>
+        <div onclick="switchPage('admin', null)" style="cursor:pointer; font-size: 20px; filter: grayscale(1);" title="Quản trị viên">⚙️</div>
     </div>
 </header>
 
@@ -228,13 +229,21 @@ main:not(.active-page) { display: none !important; }
         </div>
     </div>
 
-    <div class="dash-card" style="margin-bottom: 15px; align-items: flex-start;">
-        <div class="dash-label" style="text-align: left; margin-bottom: 10px;">Tiến độ giải đấu</div>
+    <div class="dash-card" style="margin-bottom: 15px; align-items: flex-start; position: relative;">
+        <div style="display:flex; justify-content:space-between; width:100%; margin-bottom: 10px;">
+            <div class="dash-label">Tiến độ giải đấu</div>
+            <div id="dash-progress-text" style="font-size:14px; font-weight:800; color:var(--success);">0%</div>
+        </div>
         <div style="width: 100%; background: var(--bg); height: 10px; border-radius: 5px; overflow: hidden;">
             <div id="dash-progress" style="width: 0%; background: var(--success); height: 100%; transition: width 0.5s;"></div>
         </div>
     </div>
     
+    <h3 style="margin: 25px 0 15px; font-family: 'Barlow Condensed'; font-size: 20px; color: var(--muted);">🛡️ THỐNG KÊ TỪNG ĐỘI</h3>
+    <div id="dash-team-stats-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+        <!-- Inject by JS -->
+    </div>
+
     <h3 style="margin: 25px 0 15px; font-family: 'Barlow Condensed'; font-size: 20px; color: var(--muted);">🔥 THỐNG KÊ CHUYÊN SÂU</h3>
     <div class="dash-grid">
         <div class="dash-card" style="border-color: rgba(251,191,36,0.3);">
@@ -480,6 +489,25 @@ async function loadData() {
     }
 }
 
+// Nút Force Reload Data thủ công (Tải lại)
+window.forceReloadData = async function() {
+    document.getElementById('global-loader').style.display = 'flex';
+    document.getElementById('global-loader').style.opacity = '1';
+    await loadData();
+    populateFilters();
+    
+    if(document.getElementById('page-matches').classList.contains('active-page')) renderMatches();
+    if(document.getElementById('page-standings').classList.contains('active-page')) renderStandings();
+    if(document.getElementById('page-dashboard').classList.contains('active-page')) renderDashboard();
+    if(document.getElementById('page-teams').classList.contains('active-page')) renderTeamsList();
+    if(document.getElementById('page-challenge').classList.contains('active-page')) renderChallengeMatches();
+    if(document.getElementById('page-admin').classList.contains('active-page')) renderAdminLists();
+    
+    document.getElementById('global-loader').style.opacity = '0';
+    setTimeout(() => document.getElementById('global-loader').style.display = 'none', 500);
+    showToast("Đã tải dữ liệu mới nhất!");
+}
+
 // --- TELEGRAM WEBHOOK ---
 async function sendTelegramNotification(matchKey, s1, s2, isFinish) {
     if(!TELEGRAM_CONFIG.BOT_TOKEN || !TELEGRAM_CONFIG.CHAT_ID) return;
@@ -608,12 +636,12 @@ function renderMatches() {
                     <div class="m-teams-grid">
                         <div class="team-side ${s1Class}">
                             <div class="team-id">${s.pair1_id || '?'}</div>
-                            <div class="team-players">${p1?.codes.map(c=>renderPlayerLink(c)).join(' & ') || 'Chưa xếp'}</div>
+                            <div class="team-players">${p1?.codes.map(c=>renderPlayerLink(c)).join('') || 'Chưa xếp'}</div>
                         </div>
                         <div class="score-display ${s.is_live ? 'live' : ''}">${res.s1} - ${res.s2}</div>
                         <div class="team-side ${s2Class}">
                             <div class="team-id">${s.pair2_id || '?'}</div>
-                            <div class="team-players">${p2?.codes.map(c=>renderPlayerLink(c)).join(' & ') || 'Chưa xếp'}</div>
+                            <div class="team-players">${p2?.codes.map(c=>renderPlayerLink(c)).join('') || 'Chưa xếp'}</div>
                         </div>
                     </div>
                 </div>
@@ -820,19 +848,27 @@ window.openModal = function(key) {
     const res = RESULTS[key] || {s1:0, s2:0};
     const p1 = PAIRS[s.pair1_id], p2 = PAIRS[s.pair2_id];
 
-    const formatModalPlayers = (codes) => {
-        if (!codes || codes.length === 0) return '--';
-        return codes.map(c => {
+    const formatModalPlayers = (pair) => {
+        if (!pair || !pair.codes || pair.codes.length === 0) return '--';
+        const theme = getTeamTheme(pair.team);
+        
+        // Tên các VĐV được cách xa nhau bởi khoảng trắng (&nbsp;)
+        const playerNames = pair.codes.map(c => {
             const member = MEMBERS[c];
             const name = member ? member.name : c;
-            const color = member ? getTeamTheme(member.team).main : 'var(--text)';
-            return `<span style="color: ${color}; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${name}</span>`;
-        }).join('<br>');
+            return `<span style="color: ${theme.main}; text-shadow: 0 1px 3px rgba(0,0,0,0.4);">${name}</span>`;
+        }).join(' &nbsp;&nbsp;&nbsp;&nbsp; '); 
+        
+        // Hiển thị Mã Cặp đấu và Tên VĐV
+        return `
+            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Mã Cặp: <span style="color: ${theme.main}; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">${pair.id}</span></div>
+            <div style="font-size: 16px;">${playerNames}</div>
+        `;
     };
 
     document.getElementById('m-title').innerText = `SÂN ${s.court} - LƯỢT ${s.round}`;
-    document.getElementById('m-vdv1').innerHTML = formatModalPlayers(p1?.codes);
-    document.getElementById('m-vdv2').innerHTML = formatModalPlayers(p2?.codes);
+    document.getElementById('m-vdv1').innerHTML = formatModalPlayers(p1);
+    document.getElementById('m-vdv2').innerHTML = formatModalPlayers(p2);
     document.getElementById('m-input-s1').value = res.s1;
     document.getElementById('m-input-s2').value = res.s2;
     document.getElementById('score-modal').classList.add('show');
@@ -904,7 +940,7 @@ function calculateStats() {
     Object.values(PAIRS).forEach(p => { 
         const tId = getValidTeamId(p.team);
         if(tId) {
-            if(!teamStats[tId]) teamStats[tId] = { id: tId, w: 0, l: 0, hs: 0 }; 
+            if(!teamStats[tId]) teamStats[tId] = { id: tId, w: 0, l: 0, hs: 0, totalMatches: 0, completedMatches: 0 }; 
         }
     });
 
@@ -922,33 +958,40 @@ function calculateStats() {
 
         if (s.is_live) liveMatches++;
 
+        const p1 = PAIRS[s.pair1_id], p2 = PAIRS[s.pair2_id];
+        const t1Id = p1 ? getValidTeamId(p1.team) : null;
+        const t2Id = p2 ? getValidTeamId(p2.team) : null;
+
+        // Cập nhật tổng số trận cho TỪNG ĐỘI
+        if(t1Id && teamStats[t1Id]) teamStats[t1Id].totalMatches++;
+        if(t2Id && teamStats[t2Id]) teamStats[t2Id].totalMatches++;
+
         const r = RESULTS[`${s.round}-${s.court}`];
         if(!r) return;
         const isDone = (r.s1 >= 21 || r.s2 >= 21) && !s.is_live;
         if(!isDone) return;
+        
         completedMatches++;
-
-        const p1 = PAIRS[s.pair1_id], p2 = PAIRS[s.pair2_id];
-        if(!p1 || !p2) return;
         const t1Win = r.s1 > r.s2;
 
-        const t1Id = getValidTeamId(p1.team);
-        const t2Id = getValidTeamId(p2.team);
-
         if (t1Id && t2Id) {
+            // Cập nhật số trận đã hoàn thành cho TỪNG ĐỘI
+            if(teamStats[t1Id]) teamStats[t1Id].completedMatches++;
+            if(teamStats[t2Id]) teamStats[t2Id].completedMatches++;
+
             if(t1Win) { teamStats[t1Id].w++; teamStats[t2Id].l++; } 
             else { teamStats[t2Id].w++; teamStats[t1Id].l++; }
             teamStats[t1Id].hs += (r.s1 - r.s2); 
             teamStats[t2Id].hs += (r.s2 - r.s1);
         }
 
-        (p1.codes || []).forEach(code => {
+        if (p1) (p1.codes || []).forEach(code => {
             if(!indivStats[code]) return;
             if(t1Win) { indivStats[code].w++; indivStats[code].form.push('W'); } 
             else { indivStats[code].l++; indivStats[code].form.push('L'); }
             indivStats[code].hs += (r.s1 - r.s2);
         });
-        (p2.codes || []).forEach(code => {
+        if (p2) (p2.codes || []).forEach(code => {
             if(!indivStats[code]) return;
             if(!t1Win) { indivStats[code].w++; indivStats[code].form.push('W'); } 
             else { indivStats[code].l++; indivStats[code].form.push('L'); }
@@ -958,7 +1001,6 @@ function calculateStats() {
 
     return { 
         teams: Object.values(teamStats).sort((a, b) => b.w - a.w || b.hs - a.hs), 
-        // Đã gỡ bỏ .filter(i => (i.w + i.l) > 0) để hiển thị ĐẦY ĐỦ VĐV dù chưa đánh trận nào
         indivs: Object.values(indivStats).sort((a, b) => b.w - a.w || b.hs - a.hs),
         totalMembers: Object.keys(MEMBERS).length,
         totalMatches: totalOfficialMatches, 
@@ -976,7 +1018,34 @@ function renderDashboard() {
     document.getElementById('dash-live-matches').innerText = stats.liveMatches;
     document.getElementById('dash-remain-matches').innerText = stats.remainMatches;
     
-    document.getElementById('dash-progress').style.width = stats.totalMatches > 0 ? `${(stats.completedMatches / stats.totalMatches) * 100}%` : '0%';
+    const pct = stats.totalMatches > 0 ? Math.round((stats.completedMatches / stats.totalMatches) * 100) : 0;
+    document.getElementById('dash-progress').style.width = `${pct}%`;
+    document.getElementById('dash-progress-text').innerText = `${pct}%`;
+
+    // Render Thống kê Từng Đội
+    const teamStatsContainer = document.getElementById('dash-team-stats-container');
+    teamStatsContainer.innerHTML = stats.teams.sort((a,b) => a.id - b.id).map(t => {
+        const remain = t.totalMatches - t.completedMatches;
+        const theme = getTeamTheme(t.id);
+        return `
+            <div style="background: var(--surface); border: 1px solid var(--border); border-left: 4px solid ${theme.main}; border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 800; font-size: 16px; color: ${theme.main}; font-family: 'Barlow Condensed'; letter-spacing: 0.5px;">ĐỘI ${t.id}</div>
+                    <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">Tổng: ${t.totalMatches} trận</div>
+                </div>
+                <div style="display: flex; gap: 15px; text-align: center;">
+                    <div>
+                        <div style="font-size: 18px; font-weight: 800; color: var(--success);">${t.completedMatches}</div>
+                        <div style="font-size: 10px; color: var(--muted); text-transform: uppercase;">Đã đấu</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 18px; font-weight: 800; color: var(--text);">${remain}</div>
+                        <div style="font-size: 10px; color: var(--muted); text-transform: uppercase;">Còn lại</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
 
     let bestPairName = '--';
     if(stats.teams.length > 0) bestPairName = `Đội ${stats.teams[0].id} (+${stats.teams[0].hs})`;
