@@ -988,7 +988,7 @@ function populateFilters() {
 
     const playerSel = document.getElementById('filter-player');
     const sortedMembers = Object.values(MEMBERS).sort((a,b) => a.name.localeCompare(b.name));
-    playerSel.innerHTML = '<option value="ALL">Tất cả VĐV</option>' + sortedMembers.map(m => `<option value="${m.code}">${m.name}</option>`).join('');
+    playerSel.innerHTML = '<option value="ALL">Tất cả VĐV</option>' + sortedMembers.map(m => `<option value="${m.code}">${m.code} - ${m.name}</option>`).join('');
     playerSel.value = CURRENT_FILTERS.player;
     
     document.getElementById('filter-status').value = CURRENT_FILTERS.status;
@@ -1027,7 +1027,7 @@ function renderMatches() {
         let matchPlayer = true;
         if (CURRENT_FILTERS.player !== 'ALL') {
             const p1 = PAIRS[s.pair1_id], p2 = PAIRS[s.pair2_id];
-            matchPlayer = (p1 && p1.codes.includes(CURRENT_FILTERS.player)) || (p2 && p2.codes.includes(CURRENT_FILTERS.player));
+            matchPlayer = (p1 && p1.codes && p1.codes.includes(CURRENT_FILTERS.player)) || (p2 && p2.codes && p2.codes.includes(CURRENT_FILTERS.player));
         }
         
         return matchRound && matchCourt && matchPlayer && matchStatus;
@@ -1056,7 +1056,7 @@ function renderMatches() {
 
         const renderPlayerLink = (code) => {
             const member = MEMBERS[code];
-            const name = member ? member.name : code;
+            const name = member ? `${code} - ${member.name}` : code;
             const color = member ? getTeamTheme(member.team).main : 'var(--text)';
             return `<span class="player-link" style="color: ${color}; border-bottom-color: ${color}55" onclick="event.stopPropagation(); showPlayerProfile('${code}')">${name}</span>`;
         };
@@ -1277,7 +1277,7 @@ function renderChallengeMatches() {
         
         const renderPlayerLink = (code) => {
             const member = MEMBERS[code];
-            const name = member ? member.name : code;
+            const name = member ? `${code} - ${member.name}` : code;
             const color = member ? getTeamTheme(member.team).main : 'var(--text)';
             return `<span class="player-link" style="color: ${color}; border-bottom-color: ${color}55" onclick="event.stopPropagation(); showPlayerProfile('${code}')">${name}</span>`;
         };
