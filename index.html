@@ -608,20 +608,22 @@ function renderTeamsList() {
     const groupedMembers = {};
     let allTeamIds = new Set();
 
-    // Nhóm Cặp đấu theo đội
+    // Nhóm Cặp đấu theo đội (Ép kiểu về Number để khắc phục lỗi trùng Đội do lẫn lộn dạng chuỗi/số)
     Object.values(PAIRS).forEach(p => {
-        if (p.team == null || p.team === 999) return;
-        if (!groupedPairs[p.team]) groupedPairs[p.team] = [];
-        groupedPairs[p.team].push(p);
-        allTeamIds.add(p.team);
+        if (p.team == null || Number(p.team) === 999) return;
+        const tId = Number(p.team);
+        if (!groupedPairs[tId]) groupedPairs[tId] = [];
+        groupedPairs[tId].push(p);
+        allTeamIds.add(tId);
     });
 
-    // Nhóm VĐV cá nhân theo đội
+    // Nhóm VĐV cá nhân theo đội (Ép kiểu về Number)
     Object.values(MEMBERS).forEach(m => {
-        if (m.team == null || m.team === 999) return;
-        if (!groupedMembers[m.team]) groupedMembers[m.team] = [];
-        groupedMembers[m.team].push(m);
-        allTeamIds.add(m.team);
+        if (m.team == null || Number(m.team) === 999) return;
+        const tId = Number(m.team);
+        if (!groupedMembers[tId]) groupedMembers[tId] = [];
+        groupedMembers[tId].push(m);
+        allTeamIds.add(tId);
     });
 
     const teamIds = Array.from(allTeamIds).sort((a,b) => a - b);
@@ -926,7 +928,12 @@ window.toggleStandings = function(type) {
 
 function calculateStats() {
     const teamStats = {}, indivStats = {};
-    Object.values(PAIRS).forEach(p => { if(p.team != null && !teamStats[p.team] && p.team !== 999) teamStats[p.team] = { id: p.team, w: 0, l: 0, hs: 0 }; });
+    Object.values(PAIRS).forEach(p => { 
+        if(p.team != null && Number(p.team) !== 999) {
+            const tId = Number(p.team);
+            if(!teamStats[tId]) teamStats[tId] = { id: tId, w: 0, l: 0, hs: 0 }; 
+        }
+    });
     Object.values(MEMBERS).forEach(m => { indivStats[m.code] = { id: m.code, name: m.name, w: 0, l: 0, hs: 0, form: [] }; });
 
     let completedMatches = 0;
@@ -947,10 +954,14 @@ function calculateStats() {
         const t1Win = r.s1 > r.s2;
 
         if(p1.team != null && p2.team != null) {
-            if(t1Win) { teamStats[p1.team].w++; teamStats[p2.team].l++; } 
-            else { teamStats[p2.team].w++; teamStats[p1.team].l++; }
-            teamStats[p1.team].hs += (r.s1 - r.s2); 
-            teamStats[p2.team].hs += (r.s2 - r.s1);
+            const t1Id = Number(p1.team);
+            const t2Id = Number(p2.team);
+            if (t1Id !== 999 && t2Id !== 999) {
+                if(t1Win) { teamStats[t1Id].w++; teamStats[t2Id].l++; } 
+                else { teamStats[t2Id].w++; teamStats[t1Id].l++; }
+                teamStats[t1Id].hs += (r.s1 - r.s2); 
+                teamStats[t2Id].hs += (r.s2 - r.s1);
+            }
         }
 
         (p1.codes || []).forEach(code => {
