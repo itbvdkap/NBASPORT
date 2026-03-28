@@ -32,25 +32,65 @@
         main:not(.active-page) { display: none !important; }
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- LOGIN & LANDING OVERLAY --- */
-        #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+        /* --- LOGIN & HERO COUNTDOWN OVERLAY --- */
+        #login-overlay { 
+            position: fixed; inset: 0; background: var(--bg); z-index: 100000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
+            padding: 40px 20px; overflow-y: auto; 
+        }
         
-        .landing-header { text-align: center; margin-bottom: 25px; max-width: 500px; animation: fadeIn 1s ease; }
+        .hero-section {
+            background: linear-gradient(145deg, #0f172a, #1e293b);
+            border: 2px solid rgba(239, 68, 68, 0.4);
+            border-radius: 25px;
+            padding: 40px 20px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 30px rgba(239, 68, 68, 0.15);
+            position: relative;
+            overflow: hidden;
+            animation: floatHero 4s ease-in-out infinite alternate, fadeIn 1s ease forwards;
+        }
+
+        @keyframes floatHero { from { transform: translateY(0); } to { transform: translateY(-8px); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .tournament-title { font-family: 'Barlow Condensed'; font-size: 30px; font-weight: 900; color: var(--nba-red); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; line-height: 1; }
-        .tournament-desc { font-size: 15px; color: var(--muted); line-height: 1.6; margin-bottom: 25px; font-weight: 500; }
-        .tournament-desc b { color: var(--text); }
 
-        /* Countdown ngoài Login */
-        .login-countdown { background: linear-gradient(135deg, #1e293b, #0f172a); border: 3px solid var(--nba-red); border-radius: 25px; padding: 25px; width: 100%; max-width: 450px; display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; box-shadow: 0 15px 45px rgba(239, 68, 68, 0.3); }
-        .lcd-item { text-align: center; flex: 1; }
-        .lcd-val { font-family: 'Barlow Condensed'; font-size: 40px; font-weight: 900; color: white; line-height: 1; }
-        .lcd-lbl { font-size: 11px; font-weight: 800; color: var(--nba-red); text-transform: uppercase; margin-top: 6px; letter-spacing: 1px; }
+        .hero-title {
+            font-family: 'Barlow Condensed'; font-size: 38px; font-weight: 900;
+            background: linear-gradient(to right, #fbbf24, #ef4444);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;
+            text-shadow: 0 10px 20px rgba(239,68,68,0.2);
+            line-height: 1.1;
+        }
 
+        .hero-desc {
+            font-size: 16px; color: var(--muted); line-height: 1.6;
+            margin-bottom: 30px; font-weight: 500;
+        }
+        .hero-desc b { color: var(--text); }
+
+        .cd-box { display: flex; justify-content: center; gap: 15px; }
+        .cd-block {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 15px; padding: 15px; min-width: 85px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+        }
+        .cd-num {
+            font-family: 'Barlow Condensed'; font-size: 45px; font-weight: 900;
+            color: white; line-height: 1; text-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+        .cd-label {
+            font-size: 12px; font-weight: 800; color: var(--nba-red);
+            text-transform: uppercase; margin-top: 8px; letter-spacing: 1px;
+        }
+
+        /* --- LOGIN BOX --- */
         .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 25px; padding: 35px 25px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         .login-input { width: 100%; padding: 16px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--text); margin-bottom: 15px; font-size: 16px; outline: none; transition: 0.3s; }
-        .login-input:focus { border-color: var(--nba-blue); }
+        .login-input:focus { border-color: var(--nba-blue); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); }
         .login-btn { width: 100%; padding: 16px; border-radius: 12px; background: var(--nba-blue); color: white; font-weight: 800; border: none; cursor: pointer; font-size: 16px; margin-bottom: 10px; transition: transform 0.2s; }
         .login-btn:active { transform: scale(0.98); }
         .viewer-btn { width: 100%; padding: 14px; border-radius: 12px; background: transparent; color: var(--gold); border: 1px solid var(--gold); margin-top: 15px; cursor: pointer; font-weight: 700; font-size: 14px; }
@@ -122,12 +162,22 @@
         .sub-tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer; color: var(--muted); border: none; background: transparent; }
         .sub-tab.active { background: var(--nba-blue); color: white; }
 
+        @media (max-width: 500px) {
+            .cd-box { gap: 10px; }
+            .cd-block { min-width: 65px; padding: 10px; }
+            .cd-num { font-size: 36px; }
+            .hero-title { font-size: 32px; }
+            .hero-desc { font-size: 14px; }
+        }
+
         @media (max-height: 600px) and (orientation: landscape) {
             :root { --nav-h: 55px; }
-            #login-overlay { padding-top: 60px; justify-content: flex-start; }
-            .login-countdown { padding: 10px; margin-bottom: 15px; }
-            .lcd-val { font-size: 28px; }
-            .lcd-item { min-width: 55px; }
+            #login-overlay { padding-top: 50px; flex-direction: row; gap: 30px; justify-content: center; }
+            .hero-section { margin-bottom: 0; max-width: 350px; padding: 20px; }
+            .cd-num { font-size: 30px; }
+            .cd-block { min-width: 50px; padding: 10px; }
+            .hero-title { font-size: 26px; }
+            .login-box { width: 300px; padding: 20px; }
             .match-card { min-height: 85px; }
             .input-score { font-size: 60px; }
         }
@@ -135,21 +185,27 @@
 </head>
 <body>
 
-<!-- OVERLAY LANDING & LOGIN -->
+<!-- OVERLAY LANDING COUNTDOWN & LOGIN -->
 <div id="login-overlay">
-    <div class="landing-header">
-        <div class="tournament-title">NBA Sport Open 2026</div>
-        <p class="tournament-desc">Giải cầu lông nội bộ <b>Nba Sport</b> - <b>Team 5h</b><br><b>21 VĐV</b> | <b>33 Trận đấu</b> gay cấn, hấp dẫn<br>Khai mạc lúc <b>5h30</b> tại <b>NBA STADIUM</b></p>
+    
+    <!-- KHU VỰC COUNTDOWN HOÀNH TRÁNG -->
+    <div id="landing-hero" class="hero-section">
+        <div class="hero-title">NBA Sport Open 2026</div>
+        <p class="hero-desc">
+            Giải cầu lông nội bộ <b>Nba Sport</b> - <b>Team 5h</b><br>
+            <b>21 VĐV</b> quy tụ trong <b>33 trận đấu</b> gay cấn, hấp dẫn.<br>
+            Khai mạc lúc <b>5h30</b> tại <b>NBA STADIUM</b>
+        </p>
+        
+        <div class="cd-box">
+            <div class="cd-block"><div class="cd-num" id="lcd-days">00</div><div class="cd-label">Ngày</div></div>
+            <div class="cd-block"><div class="cd-num" id="lcd-hours">00</div><div class="cd-label">Giờ</div></div>
+            <div class="cd-block"><div class="cd-num" id="lcd-mins">00</div><div class="cd-label">Phút</div></div>
+            <div class="cd-block"><div class="cd-num" id="lcd-secs">00</div><div class="cd-label">Giây</div></div>
+        </div>
     </div>
 
-    <!-- Countdown lớn ngoài màn hình Login -->
-    <div id="landing-countdown" class="login-countdown">
-        <div class="lcd-item"><div class="lcd-val" id="lcd-days">00</div><div class="lcd-lbl">Ngày</div></div>
-        <div class="lcd-item"><div class="lcd-val" id="lcd-hours">00</div><div class="lcd-lbl">Giờ</div></div>
-        <div class="lcd-item"><div class="lcd-val" id="lcd-mins">00</div><div class="lcd-lbl">Phút</div></div>
-        <div class="lcd-item"><div class="lcd-val" id="lcd-secs">00</div><div class="lcd-lbl">Giây</div></div>
-    </div>
-
+    <!-- KHU VỰC ĐĂNG NHẬP -->
     <div class="login-box">
         <h2 style="font-family:'Barlow Condensed'; font-size:24px; font-weight:900; margin-bottom:20px; color: var(--muted);">HỆ THỐNG ĐIỀU HÀNH</h2>
         <input type="text" id="login-user" class="login-input" placeholder="Tên đăng nhập">
@@ -157,6 +213,7 @@
         <button class="login-btn" onclick="handleLogin()">XÁC NHẬN ĐĂNG NHẬP</button>
         <button class="viewer-btn" onclick="loginAsViewer()">📺 KHÁN GIẢ VÀO XEM (READ-ONLY)</button>
     </div>
+
 </div>
 
 <div id="global-loader"><div class="loader-icon">🏸</div><div class="loader-text">ĐANG TẢI DỮ LIỆU...</div></div>
@@ -189,8 +246,8 @@
 
 <!-- MAIN PAGES -->
 <main id="page-dashboard" style="padding: 15px;">
-    <!-- Countdown nhỏ trong Dashboard -->
-    <div id="dash-countdown" class="dash-card" style="background: linear-gradient(135deg, var(--nba-red), #991b1b); color: white; border: none; margin-bottom: 25px;">
+    <!-- Countdown ẩn phụ trợ (nếu cần hiển thị trong dash) -->
+    <div id="dash-countdown" style="display: none; background: linear-gradient(135deg, var(--nba-red), #991b1b); color: white; border: none; margin-bottom: 25px; border-radius: 15px; padding: 15px; text-align: center;">
         <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; opacity: 0.8; letter-spacing: 1px;">Thời gian tới khai mạc</div>
         <div style="display: flex; justify-content: center; gap: 12px;">
             <div style="background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px;"><div class="dash-val" id="cd-days" style="font-size: 26px; margin-bottom:0;">00</div><div style="font-size:8px;">NGÀY</div></div>
@@ -210,6 +267,15 @@
         <div class="dash-card"><div class="dash-label">Đang đấu</div><div class="dash-val" id="dash-live-matches" style="color: var(--nba-red);">0</div></div>
         <div class="dash-card"><div class="dash-label">Còn lại</div><div class="dash-val" id="dash-remain-matches" style="color: var(--muted);">0</div></div>
     </div>
+    <div class="dash-card" style="margin-bottom: 20px; text-align: left;">
+        <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+            <div class="dash-label">Tiến độ thi đấu</div><div id="dash-progress-text" style="font-weight:800; color:var(--success);">0%</div>
+        </div>
+        <div style="width: 100%; background: var(--bg); height: 8px; border-radius: 4px; overflow: hidden; border:1px solid var(--border);">
+            <div id="dash-progress" style="width: 0%; background: var(--success); height: 100%; transition: 0.5s;"></div>
+        </div>
+    </div>
+    <h3 style="margin-bottom: 12px; font-family: 'Barlow Condensed'; color: var(--muted); font-size: 18px;">🛡️ THỐNG KÊ CHI TIẾT ĐỘI</h3>
     <div id="dash-team-stats-container"></div>
 </main>
 
@@ -307,15 +373,14 @@
     const TEAM_PALETTE = [{main:'#3b82f6'},{main:'#ef4444'},{main:'#10b981'},{main:'#f59e0b'},{main:'#8b5cf6'},{main:'#ec4899'},{main:'#06b6d4'},{main:'#eab308'}];
     const THEMES = ['dark', 'light', 'cute'];
 
-    // --- COUNTDOWN LOGIC (Target: March 29, 2026 - 05:00 AM) ---
+    // --- COUNTDOWN LOGIC (Target: March 29, 2026 - 05:30 AM) ---
     function updateCountdown() {
-        const target = new Date('March 29, 2026 05:00:00').getTime();
+        const target = new Date('March 29, 2026 05:30:00').getTime();
         const now = new Date().getTime();
         const dist = target - now;
 
         if (dist < 0) {
-            if(document.getElementById('login-overlay') && CURRENT_ROLE) document.getElementById('login-overlay').style.display = 'none';
-            if(document.getElementById('landing-countdown')) document.getElementById('landing-countdown').style.display = 'none';
+            if(document.getElementById('landing-hero')) document.getElementById('landing-hero').style.display = 'none';
             if(document.getElementById('dash-countdown')) document.getElementById('dash-countdown').style.display = 'none';
             return;
         }
@@ -375,18 +440,17 @@
         try {
             const [m, p, s, r] = await Promise.all([db.from('members').select('*'), db.from('pairs').select('*'), db.from('schedule').select('*').order('round').order('court'), db.from('results').select('*')]);
             processSupabaseData(m, p, s, r);
-        } catch (e) { showToast("Lỗi máy chủ!", "error"); }
+        } catch (e) { showToast("Lỗi tải dữ liệu!", "error"); }
     }
 
     window.handleLogin = async function() {
         const u = document.getElementById('login-user').value.trim(), p = document.getElementById('login-pass').value.trim();
-        if (!u || !p) return showToast("Nhập đủ thông tin!", "error");
+        if (!u || !p) return showToast("Nhập đủ tài khoản/mật khẩu!", "error");
         try {
             const { data } = await db.from('app_users').select('*').eq('username', u).eq('password', p).single();
             if (data) { CURRENT_ROLE = data.role; CURRENT_USER_LABEL = data.label || data.role.toUpperCase(); completeLogin(); }
-            else if (u === 'admin' && p === 'admin') { CURRENT_ROLE = 'admin'; CURRENT_USER_LABEL = 'ADMIN'; completeLogin(); }
-            else showToast("Sai tài khoản hoặc mật khẩu!", "error");
-        } catch (e) { showToast("Lỗi xác thực!", "error"); }
+            else { showToast("Sai tài khoản hoặc mật khẩu!", "error"); }
+        } catch (e) { showToast("Sai tài khoản hoặc mật khẩu!", "error"); }
     }
 
     function completeLogin() {
@@ -407,7 +471,12 @@
         setInterval(updateCountdown, 1000); updateCountdown();
     }
 
-    async function silentReload() { if (ACTIVE_KEY && CURRENT_ROLE !== 'viewer') return; await loadData(); if(document.getElementById('page-matches').classList.contains('active-page')) renderMatches(); if(document.getElementById('page-dashboard').classList.contains('active-page')) renderDashboard(); }
+    async function silentReload() { 
+        if (ACTIVE_KEY && CURRENT_ROLE !== 'viewer') return; 
+        await loadData(); 
+        if(document.getElementById('page-matches').classList.contains('active-page')) renderMatches();
+        if(document.getElementById('page-dashboard').classList.contains('active-page')) renderDashboard();
+    }
 
     // --- UI RENDERING ---
     window.renderMatches = function() {
@@ -533,7 +602,7 @@
     window.applyFilters = () => { CURRENT_FILTERS={status:document.getElementById('filter-status').value, round:parseInt(document.getElementById('filter-round').value), court:parseInt(document.getElementById('filter-court').value), player:document.getElementById('filter-player').value}; renderMatches(); }
 
     window.switchPage = (p, el) => {
-        if (p === 'admin' && CURRENT_ROLE !== 'admin') return showToast("Quyền hạn không đủ!", "error");
+        if (p === 'admin' && CURRENT_ROLE !== 'admin') return showToast("Không có quyền!", "error");
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         if(el) el.classList.add('active');
         document.querySelectorAll('main').forEach(m => m.classList.remove('active-page'));
@@ -551,7 +620,6 @@
     
     // Fake functions for admin
     window.adminAddMember = async () => showToast("Đã thêm thành công!");
-    window.copyAlterSQL = () => { const s=`ALTER TABLE public.results ADD COLUMN s1_2 integer DEFAULT 0, ADD COLUMN s2_2 integer DEFAULT 0, ADD COLUMN s1_3 integer DEFAULT 0, ADD COLUMN s2_3 integer DEFAULT 0;`; navigator.clipboard.writeText(s); showToast("Đã copy SQL!"); }
     window.adminBackupData = (fmt) => showToast("Đang chuẩn bị file...");
     window.adminResetTournament = async () => { if(confirm("Xác nhận Reset toàn bộ điểm?")) showToast("Đã reset!"); }
     window.submitFinish = function() { if(ACTIVE_KEY) actionEnd(ACTIVE_KEY); }
